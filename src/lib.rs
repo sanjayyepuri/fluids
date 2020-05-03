@@ -1,6 +1,7 @@
 mod utils;
 mod shader;
 mod geometry;
+mod texture;
 
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -98,6 +99,9 @@ pub fn start() -> Result<(), JsValue> {
             GL::STATIC_DRAW,
         )
     }
+
+    let framebuffer = texture::Framebuffer::new(&gl, 400, 400);
+
 
     // set up model., view, and projection matrices 
     let fov = 45.0 * PI / 180.0;
