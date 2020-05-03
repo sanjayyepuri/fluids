@@ -40,6 +40,10 @@ impl Framebuffer {
         gl.bind_framebuffer(GL::FRAMEBUFFER, None);
     }
 
+    pub fn get_texture(&self) -> &WebGlTexture {
+        &self.c_
+    }
+
     // create the rgb texture for the framebuffer
     fn create_float_texture(gl: &GL, width: i32, height: i32) -> Result<WebGlTexture, JsValue> {
         let render_texture = gl.create_texture().ok_or("failed to create rgb texture")?;
