@@ -19,7 +19,7 @@ impl FrameBuffer {
         self.bind();
 
         // create rgb texture
-        self.c_ = create_ float_texture(gl, self.w_, self.h_);
+        self.c_ = create_float_texture(gl, self.w_, self.h_);
         
         let attachment0 = GL::COLOR_ATTACHMENT0;
         gl.framebuffer_texture_2d(GL::FRAMEBUFFER, attachment0, GL::TEXTURE_2D, Some(&(self.c_)), 0);
@@ -28,7 +28,7 @@ impl FrameBuffer {
     }
 
     pub fn bind(&self) {
-        gl.bind_framebuffer(GL::FRAMEBUFFER, Some(&(fb_)));
+        gl.bind_framebuffer(GL::FRAMEBUFFER, Some(&(self.fb_)));
     }
 
     pub fn unbind(&self) {
