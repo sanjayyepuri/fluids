@@ -105,41 +105,14 @@ pub fn start() -> Result<(), JsValue> {
     let z_near = 0.1;
     let z_far = 100.0;
     
-    
 
     // RenderLoop 
     let f = Rc::new(RefCell::new(None));
     let g = f.clone(); 
 
-    // let mut i = 0; 
     let mut cube_rotation = 0.0;
     *g.borrow_mut() = Some(Closure::wrap(Box::new(move || { 
-        // if i > 300 {
-        //     body().set_text_content(Some("All done!"));
-            
-        //     let _ = f.borrow_mut().take(); 
-        //     return;
-        // }
-
-        // i += 1;
-        // let text = format!("requestAnimationFrame has been called {} times.", i);
-        // body().set_text_content(Some(&(text)));
-
-        gl.clear_color(0.0, 0.0, 0.0, 1.0);
-        gl.clear_depth(1.0);
-        gl.enable(GL::DEPTH_TEST);
-        gl.depth_func(GL::LEQUAL);
-
-        gl.clear(GL::COLOR_BUFFER_BIT | GL::DEPTH_BUFFER_BIT);
-
-        gl.bind_buffer(GL::ARRAY_BUFFER, Some(&vertex_buffer));
-        gl.vertex_attrib_pointer_with_i32(0, 3, GL::FLOAT, false, 0, 0);
-        gl.enable_vertex_attrib_array(0); 
-        
-        gl.bind_buffer(GL::ELEMENT_ARRAY_BUFFER, Some(&index_buffer));
-        
-        gl.use_program(Some(&program));
-
+        // setup model view and projection matrices
         let projection_mat = Perspective3::<f32>::new(aspect, fov, z_near, z_far);
 
         let rotation = UnitQuaternion::<f32>::from_euler_angles(cube_rotation, 0.7 * cube_rotation, 0.0);
@@ -151,6 +124,20 @@ pub fn start() -> Result<(), JsValue> {
 
         let mut mv_array = [0.; 16]; 
         mv_array.copy_from_slice(model_view_mat.to_homogeneous().as_slice());
+        
+        gl.clear_color(0.0, 0.0, 0.0, 1.0);
+        gl.clear_depth(1.0);
+        gl.enable(GL::DEPTH_TEST);
+        gl.depth_func(GL::LEQUAL);
+        gl.clear(GL::COLOR_BUFFER_BIT | GL::DEPTH_BUFFER_BIT);
+
+        gl.bind_buffer(GL::ARRAY_BUFFER, Some(&vertex_buffer));
+        gl.vertex_attrib_pointer_with_i32(0, 3, GL::FLOAT, false, 0, 0);
+        gl.enable_vertex_attrib_array(0); 
+        
+        gl.bind_buffer(GL::ELEMENT_ARRAY_BUFFER, Some(&index_buffer));
+        
+        gl.use_program(Some(&program));
 
         gl.uniform_matrix4fv_with_f32_array(proj_mat_id.as_ref(), false, &mut proj_array);
         gl.uniform_matrix4fv_with_f32_array(mv_mat_id.as_ref(), false, &mut mv_array);
@@ -160,7 +147,6 @@ pub fn start() -> Result<(), JsValue> {
         cube_rotation += 0.01;
 
         request_animation_frame(f.borrow().as_ref().unwrap());
-
     }) as Box<dyn FnMut()>));
 
     request_animation_frame(g.borrow().as_ref().unwrap());
