@@ -2,7 +2,7 @@
 
   <h1><code>Fast Fluid Dynamics</code></h1>
 
-  <strong>Built with <a href="https://rustwasm.github.io/">Rust+WASM</a< and WebGL</strong>
+  <strong>Built with <a href="https://rustwasm.github.io/">Rust+WASM</a> and WebGL</strong>
 </div>
 
 ## About
