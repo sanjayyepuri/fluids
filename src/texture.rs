@@ -2,7 +2,7 @@ use web_sys::WebGlRenderingContext as GL;
 use wasm_bindgen::JsValue;
 use web_sys::*; 
 
-use nalgebra::{Vector3, Unit};
+use nalgebra::{Vector3};
 use palette::rgb::Rgb;
 use palette::encoding::srgb::Srgb;
 
@@ -93,11 +93,8 @@ impl Framebuffer {
 
         Ok(render_texture)
     }
-
-    
-   
-
 }
+
 // https://stackoverflow.com/questions/9046643/webgl-create-texture
 // post on how to create texture from pixel data. 
 pub fn create_texture(gl: &GL, width: i32, height: i32, data: &[u8]) -> Result<WebGlTexture, JsValue> {
@@ -127,14 +124,14 @@ pub fn create_texture(gl: &GL, width: i32, height: i32, data: &[u8]) -> Result<W
 pub fn make_checkerboard_array(width: i32, height: i32) -> Vec<u8> {
     let mut data = Vec::with_capacity((width * height * 3) as usize);
 
-    let blockSize = width/10;
+    let block_size = width/10;
     for x in 0..width {
         for y in 0..height {
-            let xStep = x/blockSize;
-            let yStep = y/blockSize;
+            let x_step = x/block_size;
+            let y_step = y/block_size;
 
             let mut val = 0;
-            if (xStep + yStep) % 2 == 0 {
+            if (x_step + y_step) % 2 == 0 {
                 val = 255;
             } 
 
@@ -153,35 +150,35 @@ pub fn make_rainbow_array(width: i32, height: i32) -> Vec<u8> {
     let mut colors = Vec::new();
     let mut c = Rgb::<Srgb, f32>::new(1.0, 0.0, 0.0);
     colors.push(c);
-    for i in 1..50 {
+    for _ in 1..50 {
         c.green += 0.02;
         colors.push(c);
     }
-    for i in 1..50 {
+    for _ in 1..50 {
         c.red -= 0.02;
         colors.push(c);
     }
-    for i in 1..50 {
+    for _ in 1..50 {
         c.blue += 0.02;
         colors.push(c);
     }
-    for i in 1..50 {
+    for _ in 1..50 {
         c.green -= 0.02;
         colors.push(c);
     }
-    for i in 1..50 {
+    for _ in 1..50 {
         c.red += 0.02;
         colors.push(c);
     }
-    for i in 1..50 {
+    for _ in 1..50 {
         c.blue -= 0.02;
         colors.push(c);
     }
 
     for r in 0..width {
         for c in 0..height {
-            let size = (colors.len() as i32);
-            let mut sub = (c as i32 - r as i32);
+            let size = colors.len() as i32;
+            let mut sub = c as i32 - r as i32;
             while sub < size {
                 sub += size;
             }
@@ -200,13 +197,12 @@ pub fn make_rainbow_array(width: i32, height: i32) -> Vec<u8> {
 pub fn make_sine_vector_field(width: f32, height: f32) -> Vec<u8> {
     let mut data = Vec::with_capacity((width * height * 3.0) as usize);
     
-    for r in 0..(height as i32){
+    for _ in 0..(height as i32){
         for c in 0..(width as i32) {
             // sine vector field is given by f(x, y) = [1, sin(2*pi*y)]
             let x: f32 = (c as f32 - width / 2.0)/(width/2.0);
-            let y: f32 = (height - r as f32 - height / 2.0)/(height/2.0);
-            
-            let mut v = Vector3::new(1.0, 0.5*(2.0*PI*(x as f32)).sin(), 0.0);
+
+            let v = Vector3::new(1.0, 0.5*(2.0*PI*(x as f32)).sin(), 0.0);
             
             data.push(((v.x + 1.0) / 2.0 * 255.0) as u8); 
             data.push(((v.y + 1.0) / 2.0 * 255.0) as u8); 
@@ -227,7 +223,7 @@ pub fn make_circular_vector_field(width: f32, height: f32) -> Vec<u8> {
             let x: f32 = (c as f32 - width / 2.0)/(width/2.0);
             let y: f32 = (height - r as f32 - height / 2.0)/(height/2.0);
             
-            let mut v = Vector3::new(y, x, 0.0);
+            let v = Vector3::new(y, x, 0.0);
             
             data.push(((v.x + 1.0) / 2.0 * 255.0) as u8); 
             data.push(((v.y + 1.0) / 2.0 * 255.0) as u8); 
@@ -242,9 +238,9 @@ pub fn make_constant_vector_field(width: f32, height: f32) -> Vec<u8> {
     let mut data = Vec::with_capacity((width * height * 3.0) as usize);
 
 
-    for r in 0..(height as i32){
-        for c in 0..(width as i32) {    
-            let mut v = Vector3::new(1.0, 0.0, 0.0);
+    for _ in 0..(height as i32){
+        for _ in 0..(width as i32) {    
+            let v = Vector3::new(1.0, 0.0, 0.0);
             
             data.push(((v.x + 1.0) / 2.0 * 255.0) as u8); 
             data.push(((v.y + 1.0) / 2.0 * 255.0) as u8); 

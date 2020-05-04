@@ -82,7 +82,7 @@ pub fn start() -> Result<(), JsValue> {
     let mut i = 0;
     let mut then = 0.0;
     let mainloop: Box<dyn FnMut(i32)> = Box::new(move |now| { 
-        let now_sec = ((now as f32) * 0.001);
+        let now_sec = (now as f32) * 0.001;
         let delta_t = now_sec - then;
         then = now_sec;
 
