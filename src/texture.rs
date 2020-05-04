@@ -47,9 +47,9 @@ impl Framebuffer {
         })
     }
 
-    pub fn create_with_texture(gl: &GL, width: i32, height: i32, texture: WebGlTexture) -> Result<Framebuffer, JsValue>{
+    pub fn create_with_data(gl: &GL, width: i32, height: i32, texture_data: Vec<u8>) -> Result<Framebuffer, JsValue>{
         let fb = gl.create_framebuffer().ok_or("failed to create framebuffer")?;
-        
+        let texture = create_texture(&gl, width, height, &texture_data)?;
         gl.bind_framebuffer(GL::FRAMEBUFFER, Some(&fb));
         
         let attachment0 = GL::COLOR_ATTACHMENT0;
