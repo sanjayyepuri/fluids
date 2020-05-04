@@ -1,10 +1,15 @@
 use web_sys::{WebGlProgram, WebGlRenderingContext, WebGlShader};
 
+
+/* SHADERS */
 pub static CUBE_VERTEX_SHADER: &'static str = include_str!("./cube.vert");
 pub static CUBE_FRAGMENT_SHADER: &'static str = include_str!("./cube.frag");
 
-pub static QUAD_VERTEX_SHADER: &'static str = include_str!("./quad.vert");
+pub static STANDARD_VERTEX_SHADER: &'static str = include_str!("./standard.vert");
 pub static QUAD_FRAGMENT_SHADER: &'static str = include_str!("./quad.frag");
+
+pub static ADVECT_FRAGMENT_SHADER: &'static str = include_str!("./advect.frag");
+
 
 pub fn compile_shader(
     context: &WebGlRenderingContext,
