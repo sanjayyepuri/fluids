@@ -9,20 +9,11 @@ use palette::encoding::srgb::Srgb;
 use std::f32;
 use std::f32::consts::PI;
 
-
-
-macro_rules! log {
-    ( $( $t:tt )* ) => {
-        web_sys::console::log_1(&format!( $( $t )* ).into());
-    }
-}
-
-pub struct Framebuffer {
+pub struct Framebuffer{
     w_: i32, 
     h_: i32,
     fb_: WebGlFramebuffer,
     c_: WebGlTexture,
-    // d_: WebGlTexture, 
 }
 
 impl Framebuffer {
@@ -45,6 +36,11 @@ impl Framebuffer {
             fb_: fb,
             c_: c,
         })
+    }
+
+    pub fn delete_buffers(&self, gl: &GL) {
+        gl.delete_texture(Some(&self.c_));
+        gl.delete_framebuffer(Some(&self.fb_));
     }
 
     pub fn create_with_data(gl: &GL, width: i32, height: i32, texture_data: Vec<u8>) -> Result<Framebuffer, JsValue>{
@@ -86,8 +82,8 @@ impl Framebuffer {
             GL::TEXTURE_2D, 0, GL::RGB as i32, width, height, 0, GL::RGB, GL::UNSIGNED_BYTE, None)?;
         
         gl.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_MIN_FILTER, GL::LINEAR as i32);
-        gl.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_WRAP_S, GL::REPEAT as i32);
-        gl.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_WRAP_T, GL::REPEAT as i32);
+        gl.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_WRAP_S, GL::CLAMP_TO_EDGE as i32);
+        gl.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_WRAP_T, GL::CLAMP_TO_EDGE as i32);
         
         gl.bind_texture(GL::TEXTURE_2D, None);
 
@@ -113,8 +109,8 @@ pub fn create_texture(gl: &GL, width: i32, height: i32, data: &[u8]) -> Result<W
     }
 
     gl.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_MIN_FILTER, GL::LINEAR as i32);
-    gl.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_WRAP_S, GL::REPEAT as i32);
-    gl.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_WRAP_T, GL::REPEAT as i32);
+    gl.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_WRAP_S, GL::CLAMP_TO_EDGE as i32);
+    gl.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_WRAP_T, GL::CLAMP_TO_EDGE as i32);
 
     gl.bind_texture(GL::TEXTURE_2D, None);
 
@@ -213,6 +209,26 @@ pub fn make_sine_vector_field(width: f32, height: f32) -> Vec<u8> {
     data
 }
 
+pub fn make_rotational_vector_field(width: f32, height: f32) -> Vec<u8> {
+    let mut data = Vec::with_capacity((width * height * 3.0) as usize);
+    
+    for r in 0..(height as i32){
+        for c in 0..(width as i32) {
+            // sine vector field is given by f(x, y) = [1, sin(2*pi*y)]
+            let x: f32 = (c as f32 - width / 2.0)/(width/2.0);
+            let y: f32 = (height - r as f32 - height / 2.0)/(height/2.0);
+
+            let v = Vector3::new((-2.0*PI*(y as f32)).sin(), (2.0*PI*(x as f32)).sin(), 0.0);
+            
+            data.push(((v.x + 1.0) / 2.0 * 255.0) as u8); 
+            data.push(((v.y + 1.0) / 2.0 * 255.0) as u8); 
+            data.push(0);
+        }   
+    }
+
+    data
+}
+
 pub fn make_circular_vector_field(width: f32, height: f32) -> Vec<u8> {
     let mut data = Vec::with_capacity((width * height * 3.0) as usize);
 
@@ -240,7 +256,7 @@ pub fn make_constant_vector_field(width: f32, height: f32) -> Vec<u8> {
 
     for _ in 0..(height as i32){
         for _ in 0..(width as i32) {    
-            let v = Vector3::new(1.0, 0.0, 0.0);
+            let v = Vector3::new(1.0, 1.0, 0.0);
             
             data.push(((v.x + 1.0) / 2.0 * 255.0) as u8); 
             data.push(((v.y + 1.0) / 2.0 * 255.0) as u8); 

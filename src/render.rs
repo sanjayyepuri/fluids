@@ -23,14 +23,14 @@ pub struct RenderPass<'a> {
     attrib_location:    i32,
 }
 
-impl RenderPass<'_>{
+impl RenderPass<'_> {
     pub fn new<'a>(
-        gl:         &GL, 
-        shaders:    [&WebGlShader; 2], 
-        uniform_names:   Vec<&'a str>,
-        attrib_name:&str, 
-        vertices:   &[f32],
-        indices:    &[u16],
+        gl:             &GL, 
+        shaders:        [&WebGlShader; 2], 
+        uniform_names:  Vec<&'a str>,
+        attrib_name:    &str, 
+        vertices:       &[f32],
+        indices:        &[u16],
     ) -> Result<RenderPass<'a>, JsValue>
     {
         let program = shader::link_program(&gl, shaders[0], shaders[1])?;
