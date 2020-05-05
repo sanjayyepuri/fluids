@@ -51,11 +51,11 @@ pub fn start() -> Result<(), JsValue> {
     let width: i32 = 512;
     let height: i32 = 512;
 
-    let cb_data = texture::make_rainbow_array(width, height);
+    let cb_data = texture::make_checkerboard_array(width, height);
     let color_fbs = [texture::Framebuffer::create_with_data(&gl, width, height, cb_data)?,
                      texture::Framebuffer::new(&gl, width, height)?];
 
-    let vf_data = texture::make_rotational_vector_field(width as f32, height as f32);
+    let vf_data = texture::make_circular_vector_field(width as f32, height as f32);
     let vector_fbs = [texture::Framebuffer::create_with_data(&gl, width, height, vf_data)?,
                       texture::Framebuffer::new(&gl, width, height)?];
 
@@ -70,6 +70,7 @@ pub fn start() -> Result<(), JsValue> {
     let jacobi_frag_shader = shader::compile_shader(&gl, GL::FRAGMENT_SHADER, shader::JACOBI_FRAGMENT_SHADER)?;
     let divergence_frag_shader = shader::compile_shader(&gl, GL::FRAGMENT_SHADER, shader::DIVERGE_FRAGMENT_SHADER)?;
     let subtract_frag_shader = shader::compile_shader(&gl, GL::FRAGMENT_SHADER, shader::SUB_FRAGMENT_SHADER)?;
+    let bound_frag_shader = shader::compile_shader(&gl, GL::FRAGMENT_SHADER, shader::BOUND_FRAGMENT_SHADER)?;
 
 
     let advect_pass = render::RenderPass::new(&gl, 
@@ -102,6 +103,12 @@ pub fn start() -> Result<(), JsValue> {
         &geometry::QUAD_VERTICES, &geometry::QUAD_INDICES,
     )?;
 
+    let boundary_pass = render::RenderPass::new(&gl,
+        [&standard_vert_shader, &bound_frag_shader],
+        vec!["delta_x", "scale", "x"], "vertex_position",
+        &geometry::BORDER_VERTICES, &geometry::BORDER_INDICES,
+    )?;
+
     // RenderLoop 
     let f = Rc::new(RefCell::new(None));
     let g = f.clone(); 
@@ -131,19 +138,19 @@ pub fn start() -> Result<(), JsValue> {
             vector_field_refs = [vector_field_refs[1], vector_field_refs[0]];
         }
 
-        {
-            // viscuous diffusion
-            let alpha   = delta_x.powf(2.0) / (viscocity * delta_t);
-            let r_beta  = 1.0/(4.0 + alpha);
-            for k in 0..iter {
-                let j_source = &vector_fbs[k % 2];
-                let j_dest = &vector_fbs[(k + 1) % 2];
+        // {
+        //     // viscuous diffusion
+        //     let alpha   = delta_x.powf(2.0) / (viscocity * delta_t);
+        //     let r_beta  = 1.0/(4.0 + alpha);
+        //     for k in 0..iter {
+        //         let j_source = &vector_fbs[k % 2];
+        //         let j_dest = &vector_fbs[(k + 1) % 2];
 
-                j_dest.bind(&gl);
-                render_fluid::jacobi_iteration(&gl, &jacobi_pass, delta_x, alpha, r_beta, &j_source, &j_source);            
-                j_dest.unbind(&gl);
-            }
-        }
+        //         j_dest.bind(&gl);
+        //         render_fluid::jacobi_iteration(&gl, &jacobi_pass, delta_x, alpha, r_beta, &j_source, &j_source);            
+        //         j_dest.unbind(&gl);
+        //     }
+        // }
 
         {
             // add external forces
@@ -177,12 +184,19 @@ pub fn start() -> Result<(), JsValue> {
 
         {
             // boundary conditions
+            vector_field_refs[1].bind(&gl);
+            render_fluid::boundary(&gl, &boundary_pass, delta_x, -1.0, &vector_field_refs[0]);
+            vector_field_refs[1].unbind(&gl);
+
+            pressure_field_refs[0].bind(&gl);
+            render_fluid::boundary(&gl, &boundary_pass, delta_x, 1.0, &pressure_field_refs[1]);
+            pressure_field_refs[0].unbind(&gl);
         }
 
         {
             // advect color field
             color_field_refs[1].bind(&gl);
-            render_fluid::advect_color_field(&gl, delta_x, delta_t, &advect_pass, &color_field_refs[0], &vector_field_refs[0]);
+            render_fluid::advect_color_field(&gl, delta_x, delta_t, &advect_pass, &color_field_refs[0], &vector_field_refs[1]);
             color_field_refs[1].unbind(&gl);
         }
 
@@ -195,7 +209,7 @@ pub fn start() -> Result<(), JsValue> {
             gl.uniform1i(quad_pass.uniforms["qtexture"].as_ref(), 0);
             
             gl.active_texture(GL::TEXTURE0);
-            gl.bind_texture(GL::TEXTURE_2D, Some(vector_field_refs[0].get_texture()));
+            gl.bind_texture(GL::TEXTURE_2D, Some(color_field_refs[1].get_texture()));
 
             gl.bind_buffer(GL::ARRAY_BUFFER, Some(&quad_pass.vertex_buffer));
             gl.vertex_attrib_pointer_with_i32(0, 3, GL::FLOAT, false, 0, 0);

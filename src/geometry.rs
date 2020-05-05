@@ -26,7 +26,7 @@ pub static BORDER_INDICES: [u16; 8] = [
     0,  1,
     1,  2,
     2,  3,
-    3,  4, 
+    3,  0, 
 ];
 
 pub fn make_vertex_buffer(gl: &GL, data: &[f32]) -> Result<WebGlBuffer, JsValue> {

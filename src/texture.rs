@@ -256,7 +256,7 @@ pub fn make_constant_vector_field(width: f32, height: f32) -> Vec<u8> {
 
     for _ in 0..(height as i32){
         for _ in 0..(width as i32) {    
-            let v = Vector3::new(1.0, 1.0, 0.0);
+            let v = Vector3::new(1.0, 0.0, 0.0);
             
             data.push(((v.x + 1.0) / 2.0 * 255.0) as u8); 
             data.push(((v.y + 1.0) / 2.0 * 255.0) as u8); 
