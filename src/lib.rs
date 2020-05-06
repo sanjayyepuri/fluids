@@ -126,7 +126,6 @@ pub fn start() -> Result<(), JsValue> {
         
         // use the convention 0 is source and 1 is destination
         let mut color_field_refs = [&color_fbs[i], &color_fbs[(i + 1) % 2]];
-        // let mut vector_field_refs = [&vector_fbs[0],  &vector_fbs[1]];
         let mut vector_field_refs = [&vector_fbs[i],  &vector_fbs[(i + 1) % 2]];
         let mut pressure_field_refs = [&pressure_fbs[i],  &pressure_fbs[(i + 1) % 2]];
         

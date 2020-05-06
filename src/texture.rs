@@ -2,7 +2,7 @@ use web_sys::WebGlRenderingContext as GL;
 use wasm_bindgen::JsValue;
 use web_sys::*; 
 
-use nalgebra::{Vector3};
+use nalgebra::{Vector2, Vector3};
 use palette::rgb::Rgb;
 use palette::encoding::srgb::Srgb;
 
@@ -192,6 +192,66 @@ pub fn make_rainbow_array(width: i32, height: i32) -> Vec<f32> {
     data
 } 
 
+pub fn make_white_array(width: i32, height: i32) -> Vec<f32> {
+    let data = vec![1.0; (width * height * 4) as usize];
+    data
+}
+
+pub fn make_black_array(width: i32, height: i32) -> Vec<f32> {
+    let data = vec![0.0; (width * height * 4) as usize];
+    data
+} 
+
+pub fn make_black_white_array(width: i32, height: i32) -> Vec<f32> {
+    let mut data = Vec::with_capacity((width * height * 4) as usize);
+
+    let mut white = Rgb::<Srgb, f32>::new(1.0, 1.0, 1.0);
+    let mut black = Rgb::<Srgb, f32>::new(0.0, 0.0, 0.0);
+
+    for r in 0..(height as i32){
+        for c in 0..(width as i32) {
+            if (c < height / 2) {
+                data.push(white.red);
+                data.push(white.green);
+                data.push(white.blue);
+                data.push(1.0);
+            } else {
+                data.push(black.red);
+                data.push(black.green);
+                data.push(black.blue);
+                data.push(1.0);
+            }
+        }   
+    }
+
+    data
+} 
+
+pub fn make_red_blue_array(width: i32, height: i32) -> Vec<f32> {
+    let mut data = Vec::with_capacity((width * height * 4) as usize);
+
+    let mut red = Rgb::<Srgb, f32>::new(1.0, 0.1, 0.1);
+    let mut blue = Rgb::<Srgb, f32>::new(0.0, 0.5, 1.0);
+
+    for r in 0..(height as i32){
+        for c in 0..(width as i32) {
+            if (c < height / 2) {
+                data.push(red.red);
+                data.push(red.green);
+                data.push(red.blue);
+                data.push(1.0);
+            } else {
+                data.push(blue.red);
+                data.push(blue.green);
+                data.push(blue.blue);
+                data.push(1.0);
+            }
+        }   
+    }
+
+    data
+} 
+
 pub fn make_sine_vector_field(width: f32, height: f32) -> Vec<f32> {
     let mut data = Vec::with_capacity((width * height * 4.0) as usize);
     
@@ -283,7 +343,7 @@ pub fn make_constant_vector_field(width: f32, height: f32) -> Vec<f32> {
 
     for _ in 0..(height as i32){
         for _ in 0..(width as i32) {    
-            let v = Vector3::new(1.0, 0.0, 0.0);
+            let v = Vector3::new(1.0, 1.0, 0.0);
             
             data.push(v.x); 
             data.push(v.y);  
@@ -295,4 +355,20 @@ pub fn make_constant_vector_field(width: f32, height: f32) -> Vec<f32> {
     data
 }
 
+pub fn make_waves_vector_field(width: f32, height: f32) -> Vec<f32> {
+    let mut data = Vec::with_capacity((width * height * 4.0) as usize);
 
+
+    for r in 0..(height as i32){
+        for c in 0..(width as i32) {    
+            let v = Vector3::new(10.0*(r as f32).cos(), 2.0*((r as f32).sin() + (c as f32).cos()), 0.0);
+            
+            data.push(v.x); 
+            data.push(v.y);  
+            data.push(0.0);
+            data.push(1.0);
+        }   
+    }
+
+    data
+}
