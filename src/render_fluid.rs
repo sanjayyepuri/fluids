@@ -141,7 +141,8 @@ pub fn boundary(gl: &GL,
     gl.vertex_attrib_pointer_with_i32(0, 3, GL::FLOAT, false, 0, 0);
     gl.enable_vertex_attrib_array(0); 
     
-    // gl.bind_buffer(GL::ELEMENT_ARRAY_BUFFER, Some(&boundary_pass.index_buffer));
+    gl.bind_buffer(GL::ELEMENT_ARRAY_BUFFER, Some(&boundary_pass.index_buffer));
 
-    gl.draw_arrays(GL::LINE_LOOP, 0, 4);   
+    gl.draw_elements_with_i32(GL::TRIANGLES, 6, GL::UNSIGNED_SHORT, 0);
+   
 }

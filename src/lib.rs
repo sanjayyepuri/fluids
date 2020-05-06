@@ -54,7 +54,7 @@ pub fn start() -> Result<(), JsValue> {
     let width: i32 = 512;
     let height: i32 = 512;
 
-    let cb_data = texture::make_checkerboard_array(width, height);
+    let cb_data = texture::make_rainbow_array(width, height);
     let color_fbs = [texture::Framebuffer::create_with_data(&gl, width, height, cb_data)?,
                      texture::Framebuffer::new(&gl, width, height)?];
 
@@ -109,16 +109,16 @@ pub fn start() -> Result<(), JsValue> {
     let boundary_pass = render::RenderPass::new(&gl,
         [&standard_vert_shader, &bound_frag_shader],
         vec!["delta_x", "scale", "x"], "vertex_position",
-        &geometry::BORDER_VERTICES, &geometry::BORDER_INDICES,
+        &geometry::QUAD_VERTICES, &geometry::QUAD_INDICES,
     )?;
 
     // RenderLoop 
     let f = Rc::new(RefCell::new(None));
     let g = f.clone(); 
 
-    let iter = 40;
+    let iter = 50;
     let delta_x = 1.0/width as f32;
-    let viscocity = 1e-5;            // TODO: Let user edit this constant
+    let viscocity = 1e-8;            // TODO: Let user edit this constant
 
     let mut i = 0;
     let mainloop: Box<dyn FnMut(i32)> = Box::new(move |now| { 
@@ -126,8 +126,8 @@ pub fn start() -> Result<(), JsValue> {
         
         // use the convention 0 is source and 1 is destination
         let mut color_field_refs = [&color_fbs[i], &color_fbs[(i + 1) % 2]];
-        let mut vector_field_refs = [&vector_fbs[0],  &vector_fbs[1]];
-        // let mut vector_field_refs = [&vector_fbs[i],  &vector_fbs[(i + 1) % 2]];
+        // let mut vector_field_refs = [&vector_fbs[0],  &vector_fbs[1]];
+        let mut vector_field_refs = [&vector_fbs[i],  &vector_fbs[(i + 1) % 2]];
         let mut pressure_field_refs = [&pressure_fbs[i],  &pressure_fbs[(i + 1) % 2]];
         
         {
@@ -182,20 +182,20 @@ pub fn start() -> Result<(), JsValue> {
         }
 
         {
-            // // boundary conditions
-            // vector_field_refs[1].bind(&gl);
-            // render_fluid::boundary(&gl, &boundary_pass, delta_x, -1.0, &vector_field_refs[0]);
-            // vector_field_refs[1].unbind(&gl);
+            // boundary conditions
+            vector_field_refs[1].bind(&gl);
+            render_fluid::boundary(&gl, &boundary_pass, delta_x, -1.0, &vector_field_refs[0]);
+            vector_field_refs[1].unbind(&gl);
 
-            // pressure_field_refs[1].bind(&gl);
-            // render_fluid::boundary(&gl, &boundary_pass, delta_x, 1.0, &pressure_field_refs[0]);
-            // pressure_field_refs[1].unbind(&gl);
+            pressure_field_refs[1].bind(&gl);
+            render_fluid::boundary(&gl, &boundary_pass, delta_x, 1.0, &pressure_field_refs[0]);
+            pressure_field_refs[1].unbind(&gl);
         }
 
         {
             // advect color field
             color_field_refs[1].bind(&gl);
-            render_fluid::advect_color_field(&gl, delta_x, delta_t, &advect_pass, &color_field_refs[0], &vector_field_refs[0]);
+            render_fluid::advect_color_field(&gl, delta_x, delta_t, &advect_pass, &color_field_refs[0], &vector_field_refs[1]);
             color_field_refs[1].unbind(&gl);
         }
 

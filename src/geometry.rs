@@ -15,20 +15,6 @@ pub static QUAD_INDICES: [u16; 6] = [
     0,  2,  3,
 ];
 
-pub static BORDER_VERTICES: [f32; 12] = [
-    -1.0, -1.0,  1.0,
-     1.0, -1.0,  1.0,
-     1.0,  1.0,  1.0,
-    -1.0,  1.0,  1.0,
-];
-
-pub static BORDER_INDICES: [u16; 8] = [
-    0,  1,
-    1,  2,
-    2,  3,
-    3,  0, 
-];
-
 pub fn make_vertex_buffer(gl: &GL, data: &[f32]) -> Result<WebGlBuffer, JsValue> {
     let buffer = gl.create_buffer().ok_or("failed to create buffer")?;
     gl.bind_buffer(GL::ARRAY_BUFFER, Some(&buffer));
