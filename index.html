@@ -1,8 +1,80 @@
 <html>
   <head>
-    <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <title>Graphics</title>
+    <link type="text/css" rel="stylesheet" href="style.css" media="screen, projection"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   </head>
   <body>
-    <canvas id="canvas" height="512" width="512" />
+    <div class="container">
+      <div class="row"></div>
+      
+      <div class="row">
+          <canvas id="canvas" height="512" width="512" />
+        </canvas>
+      </div>
+
+      <div class="row">
+          <form action="#">
+              <h4>Simulation Variables</h4>
+              <div class="col s6">
+                <h5>Color Field</h5>
+                <select id="color_field_value">
+                  <option value="" disabled selected>Choose your option</option>
+                  <option value="1">Option 1</option>
+                  <option value="2">Option 2</option>
+                  <option value="3">Option 3</option>
+                </select>
+                <h5>Vector Field</h5>
+                <select id="vector_field_value">
+                  <option value="" disabled selected>Choose your option</option>
+                  <option value="1">Option 1</option>
+                  <option value="2">Option 2</option>
+                  <option value="3">Option 3</option>
+                </select>
+                <h5>Splat Color<span>
+                  <label>
+                      <input id="random_color" type="checkbox" class="filled-in" sdf/>
+                      <span>Random</span>
+                  </label>
+                </span></h5>
+                <input id="splat_color" type="color">
+              </div>
+              <div class="col s6">
+                <h5>Jacobi Iterations</h5>
+                <div class = "range-slider">
+                  <input id="jacobi" type="range" min="10" max="50" value="20"/>
+                  <span id="jacobi_value" class="range-slider_value">20</span>
+                </div>
+                <h5>Viscosity</h5>
+                <div class = "range-slider">
+                  <input id="viscocity" type="range" min="-10" max="-1" value="-3"/>
+                  <span id="viscocity_value" class="range-slider_value">1e-3</span>
+                </div>
+                <h5>Splat Radius</h5>
+                <div class = "range-slider">
+                  <input id="splat_radius" type="range" min="10" max="50" value="20"/>
+                  <span id="splat_radius_value" class="range-slider_value">0</span>
+                </div>
+              </div>
+          </form>
+      </div>
+    </div>
+    <script>
+      var rangeSlider = (function() {
+        var slider = $('.range-slider'),
+            range = $('[type=range]'),
+            value = $('.range-slider__value');
+          
+        slider.each(function() {
+          range.on('input', function() {
+            if ($(this).attr('id') == "viscocity") $(this).next(value).html("1e" + this.value);
+            else $(this).next(value).html(this.value);
+          });
+        });
+      });
+      
+      rangeSlider();
+    </script>
   </body>
 </html>
