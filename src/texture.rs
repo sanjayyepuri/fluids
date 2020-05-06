@@ -43,7 +43,7 @@ impl Framebuffer {
         gl.delete_framebuffer(Some(&self.fb_));
     }
 
-    pub fn create_with_data(gl: &GL, width: i32, height: i32, texture_data: Vec<u8>) -> Result<Framebuffer, JsValue>{
+    pub fn create_with_data(gl: &GL, width: i32, height: i32, texture_data: Vec<f32>) -> Result<Framebuffer, JsValue>{
         let fb = gl.create_framebuffer().ok_or("failed to create framebuffer")?;
         let texture = create_texture(&gl, width, height, &texture_data)?;
         gl.bind_framebuffer(GL::FRAMEBUFFER, Some(&fb));
@@ -79,11 +79,11 @@ impl Framebuffer {
         gl.bind_texture(GL::TEXTURE_2D, Some(&(render_texture)));
         // uh what lol 
         gl.tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_array_buffer_view(
-            GL::TEXTURE_2D, 0, GL::RGB as i32, width, height, 0, GL::RGB, GL::UNSIGNED_BYTE, None)?;
+            GL::TEXTURE_2D, 0, GL::RGBA as i32, width, height, 0, GL::RGBA, GL::FLOAT, None)?;
         
         gl.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_MIN_FILTER, GL::LINEAR as i32);
-        gl.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_WRAP_S, GL::CLAMP_TO_EDGE as i32);
-        gl.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_WRAP_T, GL::CLAMP_TO_EDGE as i32);
+        gl.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_WRAP_S, GL::REPEAT as i32);
+        gl.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_WRAP_T, GL::REPEAT as i32);
         
         gl.bind_texture(GL::TEXTURE_2D, None);
 
@@ -93,32 +93,32 @@ impl Framebuffer {
 
 // https://stackoverflow.com/questions/9046643/webgl-create-texture
 // post on how to create texture from pixel data. 
-pub fn create_texture(gl: &GL, width: i32, height: i32, data: &[u8]) -> Result<WebGlTexture, JsValue> {
+pub fn create_texture(gl: &GL, width: i32, height: i32, data: &[f32]) -> Result<WebGlTexture, JsValue> {
     let cb_texture =  gl.create_texture().ok_or("failed to create rgb texture")?;
 
-    if data.len() != (width * height * 3) as usize {
+    if data.len() != (width * height * 4) as usize {
         return Err(JsValue::from_str("invalid texture data"));
     }
 
     gl.bind_texture(GL::TEXTURE_2D, Some(&cb_texture));
     
     unsafe {
-        let pixel_array = js_sys::Uint8Array::view(data);
+        let pixel_array = js_sys::Float32Array::view(data);
         gl.tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_array_buffer_view(
-            GL::TEXTURE_2D, 0, GL::RGB as i32, width, height, 0, GL::RGB, GL::UNSIGNED_BYTE, Some(&pixel_array))?;    
+            GL::TEXTURE_2D, 0, GL::RGBA as i32, width, height, 0, GL::RGBA, GL::FLOAT, Some(&pixel_array))?;    
     }
 
     gl.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_MIN_FILTER, GL::LINEAR as i32);
-    gl.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_WRAP_S, GL::CLAMP_TO_EDGE as i32);
-    gl.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_WRAP_T, GL::CLAMP_TO_EDGE as i32);
+    gl.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_WRAP_S, GL::REPEAT as i32);
+    gl.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_WRAP_T, GL::REPEAT as i32);
 
     gl.bind_texture(GL::TEXTURE_2D, None);
 
     Ok(cb_texture)
 }
 
-pub fn make_checkerboard_array(width: i32, height: i32) -> Vec<u8> {
-    let mut data = Vec::with_capacity((width * height * 3) as usize);
+pub fn make_checkerboard_array(width: i32, height: i32) -> Vec<f32> {
+    let mut data = Vec::with_capacity((width * height * 4) as usize);
 
     let block_size = width/10;
     for x in 0..width {
@@ -126,48 +126,49 @@ pub fn make_checkerboard_array(width: i32, height: i32) -> Vec<u8> {
             let x_step = x/block_size;
             let y_step = y/block_size;
 
-            let mut val = 0;
+            let mut val = 0.0;
             if (x_step + y_step) % 2 == 0 {
-                val = 255;
+                val = 1.0;
             } 
 
             data.push(val);
             data.push(val);
             data.push(val);
+            data.push(1.0);
         }
     }
     
     data
 } 
 
-pub fn make_rainbow_array(width: i32, height: i32) -> Vec<u8> {
-    let mut data = Vec::with_capacity((width * height * 3) as usize);
+pub fn make_rainbow_array(width: i32, height: i32) -> Vec<f32> {
+    let mut data = Vec::with_capacity((width * height * 4) as usize);
 
     let mut colors = Vec::new();
     let mut c = Rgb::<Srgb, f32>::new(1.0, 0.0, 0.0);
     colors.push(c);
-    for _ in 1..50 {
-        c.green += 0.02;
+    for _ in 1..100 {
+        c.green += 0.01;
         colors.push(c);
     }
-    for _ in 1..50 {
-        c.red -= 0.02;
+    for _ in 1..100 {
+        c.red -= 0.01;
         colors.push(c);
     }
-    for _ in 1..50 {
-        c.blue += 0.02;
+    for _ in 1..100 {
+        c.blue += 0.01;
         colors.push(c);
     }
-    for _ in 1..50 {
-        c.green -= 0.02;
+    for _ in 1..100 {
+        c.green -= 0.01;
         colors.push(c);
     }
-    for _ in 1..50 {
-        c.red += 0.02;
+    for _ in 1..100 {
+        c.red += 0.01;
         colors.push(c);
     }
-    for _ in 1..50 {
-        c.blue -= 0.02;
+    for _ in 1..100 {
+        c.blue -= 0.01;
         colors.push(c);
     }
 
@@ -181,17 +182,18 @@ pub fn make_rainbow_array(width: i32, height: i32) -> Vec<u8> {
             let index = (sub) % size;
             let col = colors[index as usize];
             
-            data.push((col.red * 255.0) as u8); 
-            data.push((col.green * 255.0) as u8); 
-            data.push((col.blue * 255.0) as u8);
+            data.push(col.red); 
+            data.push(col.green); 
+            data.push(col.blue);
+            data.push(1.0);
         }   
     }
     
     data
 } 
 
-pub fn make_sine_vector_field(width: f32, height: f32) -> Vec<u8> {
-    let mut data = Vec::with_capacity((width * height * 3.0) as usize);
+pub fn make_sine_vector_field(width: f32, height: f32) -> Vec<f32> {
+    let mut data = Vec::with_capacity((width * height * 4.0) as usize);
     
     for _ in 0..(height as i32){
         for c in 0..(width as i32) {
@@ -200,17 +202,18 @@ pub fn make_sine_vector_field(width: f32, height: f32) -> Vec<u8> {
 
             let v = Vector3::new(1.0, 0.5*(2.0*PI*(x as f32)).sin(), 0.0);
             
-            data.push(((v.x + 1.0) / 2.0 * 255.0) as u8); 
-            data.push(((v.y + 1.0) / 2.0 * 255.0) as u8); 
-            data.push(0);
+            data.push(v.x); 
+            data.push(v.y); 
+            data.push(0.0);
+            data.push(1.0);
         }   
     }
 
     data
 }
 
-pub fn make_rotational_vector_field(width: f32, height: f32) -> Vec<u8> {
-    let mut data = Vec::with_capacity((width * height * 3.0) as usize);
+pub fn make_rotational_vector_field(width: f32, height: f32) -> Vec<f32> {
+    let mut data = Vec::with_capacity((width * height * 4.0) as usize);
     
     for r in 0..(height as i32){
         for c in 0..(width as i32) {
@@ -220,17 +223,18 @@ pub fn make_rotational_vector_field(width: f32, height: f32) -> Vec<u8> {
 
             let v = Vector3::new((-2.0*PI*(y as f32)).sin(), (2.0*PI*(x as f32)).sin(), 0.0);
             
-            data.push(((v.x + 1.0) / 2.0 * 255.0) as u8); 
-            data.push(((v.y + 1.0) / 2.0 * 255.0) as u8); 
-            data.push(0);
+            data.push(v.x); 
+            data.push(v.y); 
+            data.push(0.0);
+            data.push(1.0);
         }   
     }
 
     data
 }
 
-pub fn make_circular_vector_field(width: f32, height: f32) -> Vec<u8> {
-    let mut data = Vec::with_capacity((width * height * 3.0) as usize);
+pub fn make_circular_vector_field(width: f32, height: f32) -> Vec<f32> {
+    let mut data = Vec::with_capacity((width * height * 4.0) as usize);
 
 
     for r in 0..(height as i32){
@@ -241,26 +245,50 @@ pub fn make_circular_vector_field(width: f32, height: f32) -> Vec<u8> {
             
             let v = Vector3::new(y, x, 0.0);
             
-            data.push(((v.x + 1.0) / 2.0 * 255.0) as u8); 
-            data.push(((v.y + 1.0) / 2.0 * 255.0) as u8); 
-            data.push(0);
+            data.push(v.x); 
+            data.push(v.y);  
+            data.push(0.0);
+            data.push(1.0);
         }   
     }
 
     data
 }
 
-pub fn make_constant_vector_field(width: f32, height: f32) -> Vec<u8> {
-    let mut data = Vec::with_capacity((width * height * 3.0) as usize);
+pub fn make_divergent_vector_field(width: f32, height: f32) -> Vec<f32> {
+    let mut data = Vec::with_capacity((width * height * 4.0) as usize);
+
+
+    for r in 0..(height as i32){
+        for c in 0..(width as i32) {
+            let x: f32 = (c as f32 - width / 2.0)/(width/2.0);
+            let y: f32 = (height - r as f32 - height / 2.0)/(height/2.0);
+            
+            let v = Vector3::new(x, -y, 0.0);
+            
+            data.push(v.x); 
+            data.push(v.y); 
+            data.push(0.0);
+            data.push(1.0);
+        }   
+    }
+
+    data
+}
+
+
+pub fn make_constant_vector_field(width: f32, height: f32) -> Vec<f32> {
+    let mut data = Vec::with_capacity((width * height * 4.0) as usize);
 
 
     for _ in 0..(height as i32){
         for _ in 0..(width as i32) {    
             let v = Vector3::new(1.0, 0.0, 0.0);
             
-            data.push(((v.x + 1.0) / 2.0 * 255.0) as u8); 
-            data.push(((v.y + 1.0) / 2.0 * 255.0) as u8); 
-            data.push(0);
+            data.push(v.x); 
+            data.push(v.y);  
+            data.push(0.0);
+            data.push(1.0);
         }   
     }
 

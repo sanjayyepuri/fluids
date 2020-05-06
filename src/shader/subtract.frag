@@ -12,7 +12,8 @@ void main() {
     float pUp    = texture2D(p, UV + vec2(0.0, delta_x)).x;  
 
     vec4 color = texture2D(w, UV);
-    color.xy -= 0.5*delta_x * vec2((pRight - pLeft), (pUp - pDown));
+    float half_rdx = 1.0 / (2.0 * delta_x);
+    color.xy -= half_rdx * vec2((pRight - pLeft), (pUp - pDown));
 
     gl_FragColor = color;
 }

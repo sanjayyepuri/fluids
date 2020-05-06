@@ -14,6 +14,7 @@ void main() {
         offset = vec2(0.0, delta_x);
     } else if (UV.y == 1.0) {
         offset = vec2(0.0, -delta_x);
-    }
-    gl_FragColor = vec4(scale * texture2D(x, UV + offset).xy, 0.0, 1.0);
+    } 
+    vec2 col = scale * texture2D(x, UV + offset).xy;
+    gl_FragColor = vec4(col, 0.0, 1.0);
 }

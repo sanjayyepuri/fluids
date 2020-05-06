@@ -35,12 +35,12 @@ pub fn advect_color_field(gl: &GL,
 
 
 pub fn jacobi_iteration(gl: &GL, 
-    jacobi_pass: &render::RenderPass,
-    delta_x: f32, 
-    alpha: f32, 
-    r_beta: f32, 
-    x: &texture::Framebuffer, 
-    b: &texture::Framebuffer,
+    jacobi_pass:    &render::RenderPass,
+    delta_x:        f32, 
+    alpha:          f32, 
+    r_beta:         f32, 
+    x:              &texture::Framebuffer, 
+    b:              &texture::Framebuffer,
 ) 
 {
     render::clear_framebuffer(&gl);
@@ -70,9 +70,9 @@ pub fn jacobi_iteration(gl: &GL,
 
 
 pub fn divergence(gl: &GL,
-    divergence_pass: &render::RenderPass,
-    delta_x: f32, 
-    w: &texture::Framebuffer,
+    divergence_pass:    &render::RenderPass,
+    delta_x:            f32, 
+    w:                  &texture::Framebuffer,
 ) {
     render::clear_framebuffer(&gl);
     divergence_pass.use_program(&gl);
@@ -94,10 +94,10 @@ pub fn divergence(gl: &GL,
 }
 
 pub fn subtract(gl: &GL,
-    subtract_pass: &render::RenderPass,
-    delta_x: f32, 
-    p: &texture::Framebuffer,
-    w: &texture::Framebuffer,
+    subtract_pass:  &render::RenderPass,
+    delta_x:        f32, 
+    p:              &texture::Framebuffer,
+    w:              &texture::Framebuffer,
 ) {
     render::clear_framebuffer(&gl);
     subtract_pass.use_program(&gl);
@@ -122,15 +122,15 @@ pub fn subtract(gl: &GL,
 }
 
 pub fn boundary(gl: &GL,
-    boundary_pass: &render::RenderPass,
-    delta_x: f32, 
-    scale: f32,
-    x: &texture::Framebuffer,
+    boundary_pass:  &render::RenderPass,
+    delta_x:        f32, 
+    scale:          f32,
+    x:              &texture::Framebuffer,
 ) {
     boundary_pass.use_program(&gl);
 
     gl.uniform1f(boundary_pass.uniforms["delta_x"].as_ref(), delta_x);
-    gl.uniform1f(boundary_pass.uniforms["scale"].as_ref(), delta_x);
+    gl.uniform1f(boundary_pass.uniforms["scale"].as_ref(), scale);
 
     gl.uniform1i(boundary_pass.uniforms["x"].as_ref(), 0);
 
@@ -141,7 +141,7 @@ pub fn boundary(gl: &GL,
     gl.vertex_attrib_pointer_with_i32(0, 3, GL::FLOAT, false, 0, 0);
     gl.enable_vertex_attrib_array(0); 
     
-    gl.bind_buffer(GL::ELEMENT_ARRAY_BUFFER, Some(&boundary_pass.index_buffer));
+    // gl.bind_buffer(GL::ELEMENT_ARRAY_BUFFER, Some(&boundary_pass.index_buffer));
 
-    gl.draw_elements_with_i32(GL::LINES, 8, GL::UNSIGNED_SHORT, 0);
+    gl.draw_arrays(GL::LINE_LOOP, 0, 4);   
 }

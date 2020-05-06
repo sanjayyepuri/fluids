@@ -1,3 +1,4 @@
+precision mediump float;
 
 uniform sampler2D qtexture;
 varying mediump vec2 UV;

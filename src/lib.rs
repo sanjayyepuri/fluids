@@ -48,6 +48,9 @@ pub fn start() -> Result<(), JsValue> {
 
     let gl = canvas.get_context("webgl")?.unwrap().dyn_into::<GL>()?;
 
+    gl.get_extension("OES_texture_float")?;
+    gl.get_extension("OES_texture_float_linear")?;
+
     let width: i32 = 512;
     let height: i32 = 512;
 
@@ -55,7 +58,7 @@ pub fn start() -> Result<(), JsValue> {
     let color_fbs = [texture::Framebuffer::create_with_data(&gl, width, height, cb_data)?,
                      texture::Framebuffer::new(&gl, width, height)?];
 
-    let vf_data = texture::make_circular_vector_field(width as f32, height as f32);
+    let vf_data = texture::make_rotational_vector_field(width as f32, height as f32);
     let vector_fbs = [texture::Framebuffer::create_with_data(&gl, width, height, vf_data)?,
                       texture::Framebuffer::new(&gl, width, height)?];
 
@@ -113,20 +116,18 @@ pub fn start() -> Result<(), JsValue> {
     let f = Rc::new(RefCell::new(None));
     let g = f.clone(); 
 
-    let iter = 50;
+    let iter = 40;
     let delta_x = 1.0/width as f32;
-    let viscocity = 1e-3;            // TODO: Let user edit this constant
+    let viscocity = 1e-5;            // TODO: Let user edit this constant
 
     let mut i = 0;
-    let mut then = 0.0;
     let mainloop: Box<dyn FnMut(i32)> = Box::new(move |now| { 
-        let now_sec = (now as f32) * 0.001;
-        let delta_t = now_sec - then;
-        then = now_sec;
-
+        let delta_t = 1.0/60.0;
+        
         // use the convention 0 is source and 1 is destination
         let mut color_field_refs = [&color_fbs[i], &color_fbs[(i + 1) % 2]];
-        let mut vector_field_refs = [&vector_fbs[i],  &vector_fbs[(i + 1) % 2]];
+        let mut vector_field_refs = [&vector_fbs[0],  &vector_fbs[1]];
+        // let mut vector_field_refs = [&vector_fbs[i],  &vector_fbs[(i + 1) % 2]];
         let mut pressure_field_refs = [&pressure_fbs[i],  &pressure_fbs[(i + 1) % 2]];
         
         {
@@ -134,23 +135,21 @@ pub fn start() -> Result<(), JsValue> {
             vector_field_refs[1].bind(&gl);
             render_fluid::advect_color_field(&gl, delta_x, delta_t, &advect_pass, &vector_field_refs[0], &vector_field_refs[0]);
             vector_field_refs[1].unbind(&gl);
-
-            vector_field_refs = [vector_field_refs[1], vector_field_refs[0]];
         }
 
-        // {
-        //     // viscuous diffusion
-        //     let alpha   = delta_x.powf(2.0) / (viscocity * delta_t);
-        //     let r_beta  = 1.0/(4.0 + alpha);
-        //     for k in 0..iter {
-        //         let j_source = &vector_fbs[k % 2];
-        //         let j_dest = &vector_fbs[(k + 1) % 2];
+        {
+            // viscuous diffusion
+            let alpha   = delta_x.powf(2.0) / (viscocity * delta_t);
+            let r_beta  = 1.0/(4.0 + alpha);
+            for k in 0..iter {
+                let j_dest = &vector_fbs[k % 2];
+                let j_source = &vector_fbs[(k + 1) % 2];
 
-        //         j_dest.bind(&gl);
-        //         render_fluid::jacobi_iteration(&gl, &jacobi_pass, delta_x, alpha, r_beta, &j_source, &j_source);            
-        //         j_dest.unbind(&gl);
-        //     }
-        // }
+                j_dest.bind(&gl);
+                render_fluid::jacobi_iteration(&gl, &jacobi_pass, delta_x, alpha, r_beta, &j_source, &j_source);            
+                j_dest.unbind(&gl);
+            }
+        }
 
         {
             // add external forces
@@ -178,25 +177,25 @@ pub fn start() -> Result<(), JsValue> {
         {
             // gradient subtraction
             vector_field_refs[0].bind(&gl);
-            render_fluid::subtract(&gl, &subtract_pass, delta_x, &pressure_field_refs[0], &vector_field_refs[1]);
+            render_fluid::subtract(&gl, &subtract_pass, delta_x, &pressure_field_refs[1], &vector_field_refs[1]);
             vector_field_refs[0].unbind(&gl);
         }
 
         {
-            // boundary conditions
-            vector_field_refs[1].bind(&gl);
-            render_fluid::boundary(&gl, &boundary_pass, delta_x, -1.0, &vector_field_refs[0]);
-            vector_field_refs[1].unbind(&gl);
+            // // boundary conditions
+            // vector_field_refs[1].bind(&gl);
+            // render_fluid::boundary(&gl, &boundary_pass, delta_x, -1.0, &vector_field_refs[0]);
+            // vector_field_refs[1].unbind(&gl);
 
-            pressure_field_refs[0].bind(&gl);
-            render_fluid::boundary(&gl, &boundary_pass, delta_x, 1.0, &pressure_field_refs[1]);
-            pressure_field_refs[0].unbind(&gl);
+            // pressure_field_refs[1].bind(&gl);
+            // render_fluid::boundary(&gl, &boundary_pass, delta_x, 1.0, &pressure_field_refs[0]);
+            // pressure_field_refs[1].unbind(&gl);
         }
 
         {
             // advect color field
             color_field_refs[1].bind(&gl);
-            render_fluid::advect_color_field(&gl, delta_x, delta_t, &advect_pass, &color_field_refs[0], &vector_field_refs[1]);
+            render_fluid::advect_color_field(&gl, delta_x, delta_t, &advect_pass, &color_field_refs[0], &vector_field_refs[0]);
             color_field_refs[1].unbind(&gl);
         }
 
@@ -221,8 +220,6 @@ pub fn start() -> Result<(), JsValue> {
         }
         
         i = (i + 1) % 2;
-        // pressure_fbs[0].delete_buffers(&gl);
-        // pressure_fbs[1].delete_buffers(&gl);
 
         request_animation_frame(f.borrow().as_ref().unwrap());
     });
