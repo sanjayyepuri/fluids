@@ -47,6 +47,7 @@ features = [
   "WebGlShader",
   "WebGlTexture",
   "Window",
+  "MouseEvent",
   "console",
 ]
 

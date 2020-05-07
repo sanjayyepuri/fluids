@@ -4,6 +4,7 @@ mod geometry;
 mod texture;
 mod render;
 mod render_fluid;
+mod gui;
 
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -46,13 +47,15 @@ pub fn start() -> Result<(), JsValue> {
     let canvas = document().get_element_by_id("canvas").unwrap();
     let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>()?;
 
-    let gl = canvas.get_context("webgl")?.unwrap().dyn_into::<GL>()?;
-
-    gl.get_extension("OES_texture_float")?;
-    gl.get_extension("OES_texture_float_linear")?;
-
     let width: i32 = canvas.width() as i32;
     let height: i32 = canvas.height() as i32;
+    let gui = Rc::new(RefCell::new(gui::Gui::new(width as f32, height as f32)));
+
+    gui::attach_mouse_handlers(&canvas, Rc::clone(&gui))?;
+
+    let gl = canvas.get_context("webgl")?.unwrap().dyn_into::<GL>()?;
+    gl.get_extension("OES_texture_float")?;
+    gl.get_extension("OES_texture_float_linear")?;
 
     let standard_vert_shader = shader::compile_shader(&gl, GL::VERTEX_SHADER, shader::STANDARD_VERTEX_SHADER)?;
     let quad_frag_shader = shader::compile_shader(&gl, GL::FRAGMENT_SHADER, shader::QUAD_FRAGMENT_SHADER)?;
@@ -61,6 +64,7 @@ pub fn start() -> Result<(), JsValue> {
     let divergence_frag_shader = shader::compile_shader(&gl, GL::FRAGMENT_SHADER, shader::DIVERGE_FRAGMENT_SHADER)?;
     let subtract_frag_shader = shader::compile_shader(&gl, GL::FRAGMENT_SHADER, shader::SUB_FRAGMENT_SHADER)?;
     let bound_frag_shader = shader::compile_shader(&gl, GL::FRAGMENT_SHADER, shader::BOUND_FRAGMENT_SHADER)?;
+    let force_frag_shader = shader::compile_shader(&gl, GL::FRAGMENT_SHADER, shader::FORCE_FRAGMENT_SHADER)?;
 
     let advect_pass = render::RenderPass::new(&gl, 
         [&standard_vert_shader, &advect_frag_shader],
@@ -98,18 +102,24 @@ pub fn start() -> Result<(), JsValue> {
         &geometry::QUAD_VERTICES, &geometry::QUAD_INDICES,
     )?;
 
+    let force_pass = render::RenderPass::new(&gl,
+        [&standard_vert_shader, &force_frag_shader],
+        vec!["delta_t", "rho", "force", "impulse_pos", "velocity_field_texture"], "vertex_position",
+        &geometry::QUAD_VERTICES, &geometry::QUAD_INDICES,
+    )?;
+
     // RenderLoop 
     let f = Rc::new(RefCell::new(None));
     let g = f.clone(); 
 
-    let iter = 20;
+    let iter = 20;                      // TODO: get from gui
     let delta_x = 1.0/width as f32;
-    let viscocity = 1e-8;            // TODO: Let user edit this constant
+    let viscocity = 1e-8;               // TODO: get from gui
 
     let cb_data = texture::make_rainbow_array(width, height);
     let vf_data = texture::make_waves_vector_field(width as f32, height as f32);
 
-    let mut src_velocity_field = Rc::new(texture::Framebuffer::create_with_data(&gl, width, height, vf_data)?);
+    let mut src_velocity_field = Rc::new(texture::Framebuffer::new(&gl, width, height)?);
     let mut dst_velocity_field = Rc::new(texture::Framebuffer::new(&gl, width, height)?);
 
     let mut src_pressure_field = Rc::new(texture::Framebuffer::new(&gl, width, height)?);
@@ -121,6 +131,8 @@ pub fn start() -> Result<(), JsValue> {
     let mut dst_color_field = Rc::new(texture::Framebuffer::new(&gl, width, height)?);
 
     let mainloop: Box<dyn FnMut(i32)> = Box::new(move |now| { 
+        let gui = gui.borrow();
+
         let delta_t = 1.0/60.0;
         
         {
@@ -150,7 +162,20 @@ pub fn start() -> Result<(), JsValue> {
         }
 
         {
-            // add external forces
+            if gui.mouse_pressed {
+               
+                // add forces
+                let rho = 10.0;  // TODO: get from gui
+                let force = gui.mouse_vec;
+                let impulse_pos = gui.mouse_pos;
+                log!("{}, {}", impulse_pos.x, impulse_pos.y);
+                let result = render_fluid::force(&gl, &force_pass,
+                    delta_t, rho, &force, &impulse_pos,  
+                    Rc::clone(&src_velocity_field), Rc::clone(&dst_velocity_field));
+                
+                src_velocity_field = result.0;
+                dst_velocity_field = result.1;
+            }
         }
 
         {

@@ -6,31 +6,33 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   </head>
   <body>
-    <div class="container">
-      <div class="row"></div>
-      
-      <div class="row">
-          <canvas id="canvas" height="512" width="512" />
-        </canvas>
-      </div>
 
-      <div class="row">
+    <canvas id="canvas" height="512" width="512" />
+        </canvas>
+    <div class="container">
+         <div class="row">
           <form action="#">
               <h4>Simulation Variables</h4>
               <div class="col s6">
                 <h5>Color Field</h5>
                 <select id="color_field_value">
                   <option value="" disabled selected>Choose your option</option>
-                  <option value="1">Option 1</option>
-                  <option value="2">Option 2</option>
-                  <option value="3">Option 3</option>
+                  <option value="1">White</option>
+                  <option value="2">Black</option>
+                  <option value="3">Checkerboard</option>
+                  <option value="4">White/Black</option>
+                  <option value="5">Red/Blue</option>
+                  <option value="6">Rainbow</option>
                 </select>
                 <h5>Vector Field</h5>
                 <select id="vector_field_value">
                   <option value="" disabled selected>Choose your option</option>
-                  <option value="1">Option 1</option>
-                  <option value="2">Option 2</option>
-                  <option value="3">Option 3</option>
+                  <option value="1">Constant</option>
+                  <option value="2">Divergent</option>
+                  <option value="3">Sine</option>
+                  <option value="4">Circle</option>
+                  <option value="5">Rotational</option>
+                  <option value="6">Waves</option>
                 </select>
                 <h5>Splat Color<span>
                   <label>
@@ -53,8 +55,8 @@
                 </div>
                 <h5>Splat Radius</h5>
                 <div class = "range-slider">
-                  <input id="splat_radius" type="range" min="10" max="50" value="20"/>
-                  <span id="splat_radius_value" class="range-slider_value">0</span>
+                  <input id="splat_radius" type="range" min="1" max="100" value="25"/>
+                  <span id="splat_radius_value" class="range-slider_value">25</span>
                 </div>
               </div>
           </form>

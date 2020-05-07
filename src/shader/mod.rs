@@ -2,8 +2,6 @@ use web_sys::{WebGlProgram, WebGlRenderingContext, WebGlShader};
 
 
 /* SHADERS */
-pub static CUBE_VERTEX_SHADER: &'static str = include_str!("./cube.vert");
-pub static CUBE_FRAGMENT_SHADER: &'static str = include_str!("./cube.frag");
 
 pub static STANDARD_VERTEX_SHADER: &'static str = include_str!("./standard.vert");
 pub static QUAD_FRAGMENT_SHADER: &'static str = include_str!("./quad.frag");
@@ -14,6 +12,7 @@ pub static DIVERGE_FRAGMENT_SHADER: &'static str = include_str!("./divergence.fr
 pub static FORCE_FRAGMENT_SHADER:  &'static str = include_str!("./force.frag");
 pub static SUB_FRAGMENT_SHADER:    &'static str = include_str!("./subtract.frag");
 pub static BOUND_FRAGMENT_SHADER:  &'static str = include_str!("./boundary.frag");
+
 
 pub fn compile_shader(
     context: &WebGlRenderingContext,
