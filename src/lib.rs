@@ -47,11 +47,14 @@ pub fn start() -> Result<(), JsValue> {
     let canvas = document().get_element_by_id("canvas").unwrap();
     let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>()?;
 
+    let jacobi_slider = document().get_element_by_id("jacobi_slider").unwrap();
+    let jacobi_slider: web_sys::HtmlElement = jacobi_slider.dyn_into::<web_sys::HtmlElement>()?;
+
     let width: i32 = canvas.width() as i32;
     let height: i32 = canvas.height() as i32;
     let gui = Rc::new(RefCell::new(gui::Gui::new(width as f32, height as f32)));
 
-    gui::attach_mouse_handlers(&canvas, Rc::clone(&gui))?;
+    gui::attach_mouse_handlers(&canvas, Rc::clone(&gui), canvas.offset_left() as f32, canvas.offset_top() as f32)?;
 
     let gl = canvas.get_context("webgl")?.unwrap().dyn_into::<GL>()?;
     gl.get_extension("OES_texture_float")?;
@@ -165,8 +168,9 @@ pub fn start() -> Result<(), JsValue> {
             if gui.mouse_pressed {
                
                 // add forces
-                let rho = 0.0100;  // TODO: get from gui
-                let force = 200.0 * gui.mouse_vec;
+                let speed = 500.0;
+                let rho = 1e-3;
+                let force = speed * gui.mouse_vec;
                 let impulse_pos = gui.mouse_pos;
                 let result = render_fluid::force(&gl, &force_pass,
                     delta_t, rho, &force, &impulse_pos,  

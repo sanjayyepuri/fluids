@@ -6,10 +6,14 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   </head>
   <body>
-
-    <canvas id="canvas" height="512" width="512" />
-        </canvas>
     <div class="container">
+      <div class="row"></div>
+
+      <div class="row">
+        <canvas id="canvas" height="512" width="512" />
+        </canvas>
+      </div>
+
          <div class="row">
           <form action="#">
               <h4>Simulation Variables</h4>
@@ -45,18 +49,18 @@
               <div class="col s6">
                 <h5>Jacobi Iterations</h5>
                 <div class = "range-slider">
-                  <input id="jacobi" type="range" min="10" max="50" value="20"/>
+                  <input id="jacobi_slider" type="range" min="10" max="50" value="20"/>
                   <span id="jacobi_value" class="range-slider_value">20</span>
                 </div>
                 <h5>Viscosity</h5>
                 <div class = "range-slider">
-                  <input id="viscocity" type="range" min="-10" max="-1" value="-3"/>
+                  <input id="viscocity_slider" type="range" min="-10" max="-1" value="-3"/>
                   <span id="viscocity_value" class="range-slider_value">1e-3</span>
                 </div>
-                <h5>Splat Radius</h5>
+                <h5>Splat Force</h5>
                 <div class = "range-slider">
-                  <input id="splat_radius" type="range" min="1" max="100" value="25"/>
-                  <span id="splat_radius_value" class="range-slider_value">25</span>
+                  <input id="speed_slider" type="range" min="500" max="1500" value="500"/>
+                  <span id="speed_value" class="range-slider_value">500</span>
                 </div>
               </div>
           </form>

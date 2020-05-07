@@ -14,6 +14,8 @@ pub struct Gui {
 
     pub width: f32, 
     pub height: f32, 
+
+    pub j_iter: i32,
 }
 
 
@@ -25,6 +27,7 @@ impl Gui {
             mouse_vec: Vector2::new(0.0, 0.0), 
             width: width,
             height: height, 
+            j_iter: 20,
         }
     }
 
@@ -51,10 +54,10 @@ impl Gui {
     }
 }
 
-fn attach_mouse_down_handler(canvas: &web_sys::HtmlCanvasElement, gui: Rc<RefCell<Gui>>) -> Result<(), JsValue> {
+fn attach_mouse_down_handler(canvas: &web_sys::HtmlCanvasElement, gui: Rc<RefCell<Gui>>, offset_left: f32, offset_top: f32) -> Result<(), JsValue> {
     let handler: Box<dyn FnMut(_)> = Box::new(move |event: web_sys::MouseEvent| {
-        let x = event.client_x() as f32;
-        let y = event.client_y() as f32; 
+        let x = event.client_x() as f32 - offset_left; 
+        let y = event.client_y() as f32 - offset_top;
         
         gui.borrow_mut().set_mouse_down(x, y);
     });
@@ -66,10 +69,10 @@ fn attach_mouse_down_handler(canvas: &web_sys::HtmlCanvasElement, gui: Rc<RefCel
     Ok(())
 }
 
-fn attach_mouse_move_handler(canvas: &web_sys::HtmlCanvasElement, gui: Rc<RefCell<Gui>>) -> Result<(), JsValue> {
+fn attach_mouse_move_handler(canvas: &web_sys::HtmlCanvasElement, gui: Rc<RefCell<Gui>>, offset_left: f32, offset_top: f32) -> Result<(), JsValue> {
     let handler: Box<dyn FnMut(_)> = Box::new(move |event: web_sys::MouseEvent| {
-        let x = event.client_x() as f32; 
-        let y = event.client_y() as f32;
+        let x = event.client_x() as f32 - offset_left; 
+        let y = event.client_y() as f32 - offset_top;
     
         gui.borrow_mut().set_mouse_move(x, y); 
     });
@@ -84,7 +87,7 @@ fn attach_mouse_move_handler(canvas: &web_sys::HtmlCanvasElement, gui: Rc<RefCel
 
 fn attach_mouse_up_handler(canvas: &web_sys::HtmlCanvasElement, gui: Rc<RefCell<Gui>>) -> Result<(), JsValue> {
     let handler: Box<dyn FnMut()> = Box::new(move || {
-        gui.borrow_mut().set_mouse_up()
+        gui.borrow_mut().set_mouse_up();
     });
 
     let handler = Closure::wrap(handler);
@@ -94,10 +97,9 @@ fn attach_mouse_up_handler(canvas: &web_sys::HtmlCanvasElement, gui: Rc<RefCell<
     Ok(())
 }
 
-
-pub fn attach_mouse_handlers(canvas: &web_sys::HtmlCanvasElement, gui: Rc<RefCell<Gui>>) -> Result<(), JsValue>{
-    attach_mouse_down_handler(&canvas, Rc::clone(&gui))?;
-    attach_mouse_move_handler(&canvas, Rc::clone(&gui))?;
+pub fn attach_mouse_handlers(canvas: &web_sys::HtmlCanvasElement, gui: Rc<RefCell<Gui>>, offset_left: f32, offset_top: f32) -> Result<(), JsValue>{
+    attach_mouse_down_handler(&canvas, Rc::clone(&gui), offset_left, offset_top)?;
+    attach_mouse_move_handler(&canvas, Rc::clone(&gui), offset_left, offset_top)?;
     attach_mouse_up_handler(&canvas, Rc::clone(&gui))?;
 
     Ok(())
