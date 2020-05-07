@@ -2,13 +2,17 @@ use web_sys::WebGlRenderingContext as GL;
 use crate::render; 
 use crate::texture;
 
-pub fn advect_color_field(gl: &GL,
-    delta_x:        f32,
-    delta_t:        f32,
-    advect_pass:    &render::RenderPass,
-    color_field:    &texture::Framebuffer,
-    vector_field:   &texture::Framebuffer
-) {
+use std::rc::Rc;
+
+pub fn advection(gl: &GL,
+    advect_pass:        &render::RenderPass,
+    delta_x:            f32,
+    delta_t:            f32,
+    src_color_field:    Rc<texture::Framebuffer>,
+    vector_field:       &texture::Framebuffer,
+    dst_color_field:    Rc<texture::Framebuffer>,
+) ->  (Rc<texture::Framebuffer>, Rc<texture::Framebuffer>) {
+    dst_color_field.bind(&gl);
     render::clear_framebuffer(&gl);
 
     advect_pass.use_program(&gl);
@@ -19,7 +23,7 @@ pub fn advect_color_field(gl: &GL,
     gl.uniform1i(advect_pass.uniforms["vec_field_texture"].as_ref(), 1);
 
     gl.active_texture(GL::TEXTURE0);
-    gl.bind_texture(GL::TEXTURE_2D, Some(color_field.get_texture()));
+    gl.bind_texture(GL::TEXTURE_2D, Some(src_color_field.get_texture()));
 
     gl.active_texture(GL::TEXTURE1);
     gl.bind_texture(GL::TEXTURE_2D, Some(vector_field.get_texture()));
@@ -31,8 +35,35 @@ pub fn advect_color_field(gl: &GL,
     gl.bind_buffer(GL::ELEMENT_ARRAY_BUFFER, Some(&advect_pass.index_buffer));
 
     gl.draw_elements_with_i32(GL::TRIANGLES, 6, GL::UNSIGNED_SHORT, 0);
+    dst_color_field.unbind(&gl);
+
+    (dst_color_field, src_color_field)
 }
 
+pub fn jacobi_method(gl: &GL,
+    jacobi_pass:    &render::RenderPass,
+    iter:           usize,
+    delta_x:        f32, 
+    alpha:          f32, 
+    r_beta:         f32, 
+    x:              Rc<texture::Framebuffer>, 
+    b:              &texture::Framebuffer,
+    dst:            Rc<texture::Framebuffer>,
+) -> (Rc<texture::Framebuffer>, Rc<texture::Framebuffer>)
+{
+    let bufs = [&x, &dst];
+    for k in 0..iter {
+        let j_source = bufs[k % 2];
+        let j_dst = bufs[(k + 1) % 2];
+
+        j_dst.bind(&gl);
+        jacobi_iteration(&gl, &jacobi_pass, delta_x, alpha, r_beta, &j_source, &b);            
+        j_dst.unbind(&gl);
+    }
+    
+    // lazy code: essentially we do jacobi `iter-1` or `iter` iterations
+    (x, dst)
+}
 
 pub fn jacobi_iteration(gl: &GL, 
     jacobi_pass:    &render::RenderPass,
@@ -73,7 +104,9 @@ pub fn divergence(gl: &GL,
     divergence_pass:    &render::RenderPass,
     delta_x:            f32, 
     w:                  &texture::Framebuffer,
-) {
+    dst:                Rc<texture::Framebuffer>,
+) -> Rc<texture::Framebuffer> {
+    dst.bind(&gl);
     render::clear_framebuffer(&gl);
     divergence_pass.use_program(&gl);
 
@@ -91,14 +124,19 @@ pub fn divergence(gl: &GL,
     gl.bind_buffer(GL::ELEMENT_ARRAY_BUFFER, Some(&divergence_pass.index_buffer));
 
     gl.draw_elements_with_i32(GL::TRIANGLES, 6, GL::UNSIGNED_SHORT, 0);
+    dst.unbind(&gl);
+
+    dst
 }
 
 pub fn subtract(gl: &GL,
     subtract_pass:  &render::RenderPass,
     delta_x:        f32, 
     p:              &texture::Framebuffer,
-    w:              &texture::Framebuffer,
-) {
+    w:              Rc<texture::Framebuffer>,
+    dst:            Rc<texture::Framebuffer>, 
+) -> (Rc<texture::Framebuffer>, Rc<texture::Framebuffer>) {
+    dst.bind(&gl);
     render::clear_framebuffer(&gl);
     subtract_pass.use_program(&gl);
 
@@ -119,14 +157,19 @@ pub fn subtract(gl: &GL,
     gl.bind_buffer(GL::ELEMENT_ARRAY_BUFFER, Some(&subtract_pass.index_buffer));
 
     gl.draw_elements_with_i32(GL::TRIANGLES, 6, GL::UNSIGNED_SHORT, 0);
+    dst.unbind(&gl);
+
+    (dst, w)
 }
 
 pub fn boundary(gl: &GL,
     boundary_pass:  &render::RenderPass,
     delta_x:        f32, 
     scale:          f32,
-    x:              &texture::Framebuffer,
-) {
+    x:              Rc<texture::Framebuffer>,
+    dst:            Rc<texture::Framebuffer>,
+) -> (Rc<texture::Framebuffer>, Rc<texture::Framebuffer>) {
+    dst.bind(&gl);
     boundary_pass.use_program(&gl);
 
     gl.uniform1f(boundary_pass.uniforms["delta_x"].as_ref(), delta_x);
@@ -144,5 +187,7 @@ pub fn boundary(gl: &GL,
     gl.bind_buffer(GL::ELEMENT_ARRAY_BUFFER, Some(&boundary_pass.index_buffer));
 
     gl.draw_elements_with_i32(GL::TRIANGLES, 6, GL::UNSIGNED_SHORT, 0);
-   
+    dst.unbind(&gl);
+
+    (dst, x)
 }
