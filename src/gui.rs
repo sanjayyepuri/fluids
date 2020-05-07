@@ -9,7 +9,6 @@ use crate::log;
 pub struct Gui {
     pub mouse_pressed: bool,
 
-    pub mouse_start_pos: Vector2<f32>,
     pub mouse_pos: Vector2<f32>, 
     pub mouse_vec: Vector2<f32>,
 
@@ -22,7 +21,6 @@ impl Gui {
     pub fn new(width: f32, height: f32) -> Gui {
         Gui {
             mouse_pressed: false, 
-            mouse_start_pos: Vector2::new(0.0, 0.0),
             mouse_pos: Vector2::new(0.0, 0.0),
             mouse_vec: Vector2::new(0.0, 0.0), 
             width: width,
@@ -31,8 +29,7 @@ impl Gui {
     }
 
     pub fn set_mouse_down(&mut self, x: f32, y: f32) {
-        self.mouse_start_pos = Vector2::new(x / self.width, y / self.height);
-        self.mouse_pos = Vector2::new(x / self.width, y / self.height);
+        self.mouse_pos = Vector2::new(x / self.width, 1.0 - y / self.height);
         self.mouse_vec = Vector2::new(0.0, 0.0);
 
         self.mouse_pressed = true;
@@ -43,10 +40,10 @@ impl Gui {
         if !self.mouse_pressed {
             return;
         }
+        let old_pos = self.mouse_pos;
+        self.mouse_pos = Vector2::new(x / self.width, 1.0 - y / self.height);
 
-        self.mouse_pos = Vector2::new(x / self.width, y / self.height);
-
-        self.mouse_vec = self.mouse_pos - self.mouse_start_pos;
+        self.mouse_vec = self.mouse_pos - old_pos;
     }
 
     pub fn set_mouse_up(&mut self) {

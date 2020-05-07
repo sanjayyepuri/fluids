@@ -119,7 +119,7 @@ pub fn start() -> Result<(), JsValue> {
     let cb_data = texture::make_rainbow_array(width, height);
     let vf_data = texture::make_waves_vector_field(width as f32, height as f32);
 
-    let mut src_velocity_field = Rc::new(texture::Framebuffer::new(&gl, width, height)?);
+    let mut src_velocity_field = Rc::new(texture::Framebuffer::create_with_data(&gl, width, height, vf_data)?);
     let mut dst_velocity_field = Rc::new(texture::Framebuffer::new(&gl, width, height)?);
 
     let mut src_pressure_field = Rc::new(texture::Framebuffer::new(&gl, width, height)?);
@@ -165,10 +165,9 @@ pub fn start() -> Result<(), JsValue> {
             if gui.mouse_pressed {
                
                 // add forces
-                let rho = 10.0;  // TODO: get from gui
-                let force = gui.mouse_vec;
+                let rho = 0.0100;  // TODO: get from gui
+                let force = 200.0 * gui.mouse_vec;
                 let impulse_pos = gui.mouse_pos;
-                log!("{}, {}", impulse_pos.x, impulse_pos.y);
                 let result = render_fluid::force(&gl, &force_pass,
                     delta_t, rho, &force, &impulse_pos,  
                     Rc::clone(&src_velocity_field), Rc::clone(&dst_velocity_field));

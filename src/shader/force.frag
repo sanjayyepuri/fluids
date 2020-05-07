@@ -11,7 +11,7 @@ void main() {
     vec4 color = texture2D(velocity_field_texture, UV);
 
     vec2 delta = UV - impulse_pos;
-    float scale = delta_t * exp((pow(delta.x, 2.0) + pow(delta.y, 2.0))/rho);
+    float scale = delta_t * exp(-(pow(delta.x, 2.0) + pow(delta.y, 2.0))/rho);
 
     color.xy += scale * force;
 
