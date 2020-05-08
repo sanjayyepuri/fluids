@@ -50,6 +50,12 @@ pub fn start() -> Result<(), JsValue> {
     let jacobi_slider = document().get_element_by_id("jacobi_slider").unwrap();
     let jacobi_slider: web_sys::HtmlInputElement = jacobi_slider.dyn_into::<web_sys::HtmlInputElement>()?;
 
+    let viscocity_slider = document().get_element_by_id("viscocity_slider").unwrap();
+    let viscocity_slider: web_sys::HtmlInputElement = viscocity_slider.dyn_into::<web_sys::HtmlInputElement>()?;
+
+    let speed_slider = document().get_element_by_id("speed_slider").unwrap();
+    let speed_slider: web_sys::HtmlInputElement = speed_slider.dyn_into::<web_sys::HtmlInputElement>()?;
+
     let width: i32 = canvas.width() as i32;
     let height: i32 = canvas.height() as i32;
     let gui = Rc::new(RefCell::new(gui::Gui::new(width as f32, height as f32)));
@@ -115,9 +121,7 @@ pub fn start() -> Result<(), JsValue> {
     let f = Rc::new(RefCell::new(None));
     let g = f.clone(); 
 
-    let iter = 20;                      // TODO: get from gui
     let delta_x = 1.0/width as f32;
-    let viscocity = 1e-8;               // TODO: get from gui
 
     let cb_data = texture::make_rainbow_array(width, height);
     let vf_data = texture::make_waves_vector_field(width as f32, height as f32);
@@ -136,8 +140,7 @@ pub fn start() -> Result<(), JsValue> {
     let mainloop: Box<dyn FnMut(i32)> = Box::new(move |now| { 
         let gui = gui.borrow();
 
-        log!("{}", jacobi_slider.value_as_number());
-
+        let iter = jacobi_slider.value_as_number() as usize;
         let delta_t = 1.0/60.0;
         
         {
@@ -152,6 +155,7 @@ pub fn start() -> Result<(), JsValue> {
 
         {
             // viscuous diffusion
+            let viscocity = (10.0_f32).powf(viscocity_slider.value_as_number() as f32);
             let alpha   = delta_x.powf(2.0) / (viscocity * delta_t);
             let r_beta  = 1.0/(4.0 + alpha);
 
@@ -170,8 +174,8 @@ pub fn start() -> Result<(), JsValue> {
             if gui.mouse_pressed {
                
                 // add forces
-                let speed = 500.0;
                 let rho = 1e-3;
+                let speed = speed_slider.value_as_number() as f32;
                 let force = speed * gui.mouse_vec;
                 let impulse_pos = gui.mouse_pos;
                 let result = render_fluid::force(&gl, &force_pass,

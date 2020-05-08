@@ -74,7 +74,7 @@
           
         slider.each(function() {
           range.on('input', function() {
-            if ($(this).attr('id') == "viscocity") $(this).next(value).html("1e" + this.value);
+            if ($(this).attr('id') == "viscocity_slider") $(this).next(value).html("1e" + this.value);
             else $(this).next(value).html(this.value);
           });
         });
