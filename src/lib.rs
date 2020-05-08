@@ -48,7 +48,7 @@ pub fn start() -> Result<(), JsValue> {
     let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>()?;
 
     let jacobi_slider = document().get_element_by_id("jacobi_slider").unwrap();
-    let jacobi_slider: web_sys::HtmlElement = jacobi_slider.dyn_into::<web_sys::HtmlElement>()?;
+    let jacobi_slider: web_sys::HtmlInputElement = jacobi_slider.dyn_into::<web_sys::HtmlInputElement>()?;
 
     let width: i32 = canvas.width() as i32;
     let height: i32 = canvas.height() as i32;
@@ -135,6 +135,8 @@ pub fn start() -> Result<(), JsValue> {
 
     let mainloop: Box<dyn FnMut(i32)> = Box::new(move |now| { 
         let gui = gui.borrow();
+
+        log!("{}", jacobi_slider.value_as_number());
 
         let delta_t = 1.0/60.0;
         
