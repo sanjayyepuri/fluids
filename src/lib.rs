@@ -56,6 +56,12 @@ pub fn start() -> Result<(), JsValue> {
     let speed_slider = document().get_element_by_id("speed_slider").unwrap();
     let speed_slider: web_sys::HtmlInputElement = speed_slider.dyn_into::<web_sys::HtmlInputElement>()?;
 
+    let vector_field_select = document().get_element_by_id("vector_field_select").unwrap();
+    let vector_field_select: web_sys::HtmlSelectElement = vector_field_select.dyn_into::<web_sys::HtmlSelectElement>()?;
+
+    let color_field_select = document().get_element_by_id("color_field_select").unwrap();
+    let color_field_select: web_sys::HtmlSelectElement = color_field_select.dyn_into::<web_sys::HtmlSelectElement>()?;
+
     let width: i32 = canvas.width() as i32;
     let height: i32 = canvas.height() as i32;
     let gui = Rc::new(RefCell::new(gui::Gui::new(width as f32, height as f32)));
@@ -123,8 +129,11 @@ pub fn start() -> Result<(), JsValue> {
 
     let delta_x = 1.0/width as f32;
 
-    let cb_data = texture::make_rainbow_array(width, height);
     let vf_data = texture::make_waves_vector_field(width as f32, height as f32);
+    let cb_data = texture::make_rainbow_array(width, height);
+
+    let mut cur_vector = 0;
+    let mut cur_color = 0;
 
     let mut src_velocity_field = Rc::new(texture::Framebuffer::create_with_data(&gl, width, height, vf_data)?);
     let mut dst_velocity_field = Rc::new(texture::Framebuffer::new(&gl, width, height)?);
@@ -142,7 +151,28 @@ pub fn start() -> Result<(), JsValue> {
 
         let iter = jacobi_slider.value_as_number() as usize;
         let delta_t = 1.0/60.0;
+
+        let vector_field_select_value = vector_field_select.selected_index();
+        let color_field_select_value = color_field_select.selected_index();
+
+        if vector_field_select_value != cur_vector {
+            src_velocity_field.delete_buffers(&gl);
+            src_pressure_field.delete_buffers(&gl);
+            let data = texture::get_vector_field_with_value(vector_field_select_value, width, height);
+            src_velocity_field = Rc::new(texture::Framebuffer::create_with_data(&gl, width, height, data).unwrap());
+            src_pressure_field = Rc::new(texture::Framebuffer::new(&gl, width, height).unwrap());
+
+            cur_vector = vector_field_select_value;
+        }
         
+        if color_field_select_value != cur_color {
+            src_color_field.delete_buffers(&gl);
+            let data = texture::get_color_field_with_value(color_field_select_value, width, height);
+            src_color_field = Rc::new(texture::Framebuffer::create_with_data(&gl, width, height, data).unwrap());
+
+            cur_color = color_field_select_value;
+        }
+
         {
             // advect vector field
             let result = render_fluid::advection(&gl, &advect_pass,

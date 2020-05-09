@@ -38,6 +38,7 @@ features = [
   "Element",
   "HtmlCanvasElement",
   "HtmlInputElement",
+  "HtmlSelectElement",
   "WebGlBuffer",
   "WebGlFramebuffer",
   "WebGlRenderbuffer",
