@@ -10,6 +10,7 @@ pub static ADVECT_FRAGMENT_SHADER: &'static str = include_str!("./advect.frag");
 pub static JACOBI_FRAGMENT_SHADER: &'static str = include_str!("./jacobi.frag");
 pub static DIVERGE_FRAGMENT_SHADER: &'static str = include_str!("./divergence.frag");
 pub static FORCE_FRAGMENT_SHADER:  &'static str = include_str!("./force.frag");
+pub static COLOR_FRAGMENT_SHADER:  &'static str = include_str!("./dye.frag");
 pub static SUB_FRAGMENT_SHADER:    &'static str = include_str!("./subtract.frag");
 pub static BOUND_FRAGMENT_SHADER:  &'static str = include_str!("./boundary.frag");
 

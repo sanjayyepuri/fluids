@@ -10,6 +10,8 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::WebGlRenderingContext as GL;
 
+use nalgebra::Vector3;
+
 use std::cell::RefCell; 
 use std::rc::Rc;
 
@@ -53,6 +55,12 @@ pub fn start() -> Result<(), JsValue> {
     let viscocity_slider = document().get_element_by_id("viscocity_slider").unwrap();
     let viscocity_slider: web_sys::HtmlInputElement = viscocity_slider.dyn_into::<web_sys::HtmlInputElement>()?;
 
+    let random_color = document().get_element_by_id("random_color").unwrap();
+    let random_color: web_sys::HtmlInputElement = random_color.dyn_into::<web_sys::HtmlInputElement>()?;
+
+    let splat_color = document().get_element_by_id("splat_color").unwrap();
+    let splat_color: web_sys::HtmlInputElement = splat_color.dyn_into::<web_sys::HtmlInputElement>()?;
+
     let speed_slider = document().get_element_by_id("speed_slider").unwrap();
     let speed_slider: web_sys::HtmlInputElement = speed_slider.dyn_into::<web_sys::HtmlInputElement>()?;
 
@@ -80,6 +88,7 @@ pub fn start() -> Result<(), JsValue> {
     let subtract_frag_shader = shader::compile_shader(&gl, GL::FRAGMENT_SHADER, shader::SUB_FRAGMENT_SHADER)?;
     let bound_frag_shader = shader::compile_shader(&gl, GL::FRAGMENT_SHADER, shader::BOUND_FRAGMENT_SHADER)?;
     let force_frag_shader = shader::compile_shader(&gl, GL::FRAGMENT_SHADER, shader::FORCE_FRAGMENT_SHADER)?;
+    let color_frag_shader = shader::compile_shader(&gl, GL::FRAGMENT_SHADER, shader::COLOR_FRAGMENT_SHADER)?;
 
     let advect_pass = render::RenderPass::new(&gl, 
         [&standard_vert_shader, &advect_frag_shader],
@@ -123,6 +132,12 @@ pub fn start() -> Result<(), JsValue> {
         &geometry::QUAD_VERTICES, &geometry::QUAD_INDICES,
     )?;
 
+    let color_pass = render::RenderPass::new(&gl,
+        [&standard_vert_shader, &color_frag_shader],
+        vec!["delta_t", "rho", "color", "impulse_pos", "color_field_texture"], "vertex_position",
+        &geometry::QUAD_VERTICES, &geometry::QUAD_INDICES,
+    )?;
+
     // RenderLoop 
     let f = Rc::new(RefCell::new(None));
     let g = f.clone(); 
@@ -145,6 +160,8 @@ pub fn start() -> Result<(), JsValue> {
 
     let mut src_color_field = Rc::new(texture::Framebuffer::create_with_data(&gl, width, height, cb_data)?);
     let mut dst_color_field = Rc::new(texture::Framebuffer::new(&gl, width, height)?);
+
+    let rainbow_colors = texture::get_rainbow_array();
 
     let mainloop: Box<dyn FnMut(i32)> = Box::new(move |now| { 
         let gui = gui.borrow();
@@ -202,7 +219,6 @@ pub fn start() -> Result<(), JsValue> {
 
         {
             if gui.mouse_pressed {
-               
                 // add forces
                 let rho = 1e-3;
                 let speed = speed_slider.value_as_number() as f32;
@@ -214,6 +230,31 @@ pub fn start() -> Result<(), JsValue> {
                 
                 src_velocity_field = result.0;
                 dst_velocity_field = result.1;
+
+                // add dye
+                let rand_checked = random_color.checked();
+                let selected_color = &splat_color.value()[1..];
+                let color_hex = hex::decode(selected_color).unwrap();
+                let mut r = color_hex[0] as f32 / 255.0;
+                let mut g = color_hex[1] as f32 / 255.0;
+                let mut b = color_hex[2] as f32 / 255.0;
+                
+                if rand_checked {
+                    let now_sec = now as f32 * 0.25;
+                    let rand_color = rainbow_colors[(now_sec % rainbow_colors.len() as f32) as usize];
+                    r = rand_color.red;
+                    g = rand_color.green;
+                    b = rand_color.blue;
+                }
+
+                let col = Vector3::new(r, g, b);
+
+                let result = render_fluid::color(&gl, &color_pass,
+                    delta_t, rho, &col, &impulse_pos,  
+                    Rc::clone(&src_color_field), Rc::clone(&dst_color_field));
+                
+                src_color_field = result.0;
+                dst_color_field = result.1;
             }
         }
 

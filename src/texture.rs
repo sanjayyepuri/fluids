@@ -2,7 +2,7 @@ use web_sys::WebGlRenderingContext as GL;
 use wasm_bindgen::JsValue;
 use web_sys::*; 
 
-use nalgebra::{Vector2, Vector3};
+use nalgebra::{Vector3};
 use palette::rgb::Rgb;
 use palette::encoding::srgb::Srgb;
 
@@ -117,33 +117,7 @@ pub fn create_texture(gl: &GL, width: i32, height: i32, data: &[f32]) -> Result<
     Ok(cb_texture)
 }
 
-pub fn make_checkerboard_array(width: i32, height: i32) -> Vec<f32> {
-    let mut data = Vec::with_capacity((width * height * 4) as usize);
-
-    let block_size = width/10;
-    for x in 0..width {
-        for y in 0..height {
-            let x_step = x/block_size;
-            let y_step = y/block_size;
-
-            let mut val = 0.0;
-            if (x_step + y_step) % 2 == 0 {
-                val = 1.0;
-            } 
-
-            data.push(val);
-            data.push(val);
-            data.push(val);
-            data.push(1.0);
-        }
-    }
-    
-    data
-} 
-
-pub fn make_rainbow_array(width: i32, height: i32) -> Vec<f32> {
-    let mut data = Vec::with_capacity((width * height * 4) as usize);
-
+pub fn get_rainbow_array() -> Vec<palette::rgb::Rgb> {
     let mut colors = Vec::new();
     let mut c = Rgb::<Srgb, f32>::new(1.0, 0.0, 0.0);
     colors.push(c);
@@ -171,6 +145,38 @@ pub fn make_rainbow_array(width: i32, height: i32) -> Vec<f32> {
         c.blue -= 0.01;
         colors.push(c);
     }
+
+    colors
+}
+
+pub fn make_checkerboard_array(width: i32, height: i32) -> Vec<f32> {
+    let mut data = Vec::with_capacity((width * height * 4) as usize);
+
+    let block_size = width/10;
+    for x in 0..width {
+        for y in 0..height {
+            let x_step = x/block_size;
+            let y_step = y/block_size;
+
+            let mut val = 0.0;
+            if (x_step + y_step) % 2 == 0 {
+                val = 1.0;
+            } 
+
+            data.push(val);
+            data.push(val);
+            data.push(val);
+            data.push(1.0);
+        }
+    }
+    
+    data
+} 
+
+pub fn make_rainbow_array(width: i32, height: i32) -> Vec<f32> {
+    let mut data = Vec::with_capacity((width * height * 4) as usize);
+
+    let mut colors = get_rainbow_array();
 
     for r in 0..width {
         for c in 0..height {
@@ -200,10 +206,10 @@ pub fn make_white_array(width: i32, height: i32) -> Vec<f32> {
 pub fn make_black_array(width: i32, height: i32) -> Vec<f32> {
     let mut data = Vec::with_capacity((width * height * 4) as usize);
 
-    let mut black = Rgb::<Srgb, f32>::new(0.0, 0.0, 0.0);
+    let black = Rgb::<Srgb, f32>::new(0.0, 0.0, 0.0);
 
-    for r in 0..(height as i32){
-        for c in 0..(width as i32) {
+    for _ in 0..(height as i32){
+        for _ in 0..(width as i32) {
             data.push(black.red);
             data.push(black.green);
             data.push(black.blue);
@@ -217,12 +223,12 @@ pub fn make_black_array(width: i32, height: i32) -> Vec<f32> {
 pub fn make_black_white_array(width: i32, height: i32) -> Vec<f32> {
     let mut data = Vec::with_capacity((width * height * 4) as usize);
 
-    let mut white = Rgb::<Srgb, f32>::new(1.0, 1.0, 1.0);
-    let mut black = Rgb::<Srgb, f32>::new(0.0, 0.0, 0.0);
+    let white = Rgb::<Srgb, f32>::new(1.0, 1.0, 1.0);
+    let black = Rgb::<Srgb, f32>::new(0.0, 0.0, 0.0);
 
-    for r in 0..(height as i32){
+    for _ in 0..(height as i32){
         for c in 0..(width as i32) {
-            if (c < height / 2) {
+            if c < height / 2 {
                 data.push(white.red);
                 data.push(white.green);
                 data.push(white.blue);
@@ -242,12 +248,12 @@ pub fn make_black_white_array(width: i32, height: i32) -> Vec<f32> {
 pub fn make_red_blue_array(width: i32, height: i32) -> Vec<f32> {
     let mut data = Vec::with_capacity((width * height * 4) as usize);
 
-    let mut red = Rgb::<Srgb, f32>::new(1.0, 0.1, 0.1);
-    let mut blue = Rgb::<Srgb, f32>::new(0.0, 0.5, 1.0);
+    let red = Rgb::<Srgb, f32>::new(1.0, 0.1, 0.1);
+    let blue = Rgb::<Srgb, f32>::new(0.0, 0.5, 1.0);
 
-    for r in 0..(height as i32){
+    for _ in 0..(height as i32){
         for c in 0..(width as i32) {
-            if (c < height / 2) {
+            if c < height / 2 {
                 data.push(red.red);
                 data.push(red.green);
                 data.push(red.blue);
@@ -308,7 +314,6 @@ pub fn make_rotational_vector_field(width: f32, height: f32) -> Vec<f32> {
 pub fn make_circular_vector_field(width: f32, height: f32) -> Vec<f32> {
     let mut data = Vec::with_capacity((width * height * 4.0) as usize);
 
-
     for r in 0..(height as i32){
         for c in 0..(width as i32) {
             // circular vector field is given by f(x, y) = [-y, x]
@@ -330,7 +335,6 @@ pub fn make_circular_vector_field(width: f32, height: f32) -> Vec<f32> {
 pub fn make_divergent_vector_field(width: f32, height: f32) -> Vec<f32> {
     let mut data = Vec::with_capacity((width * height * 4.0) as usize);
 
-
     for r in 0..(height as i32){
         for c in 0..(width as i32) {
             let x: f32 = (c as f32 - width / 2.0)/(width/2.0);
@@ -351,7 +355,6 @@ pub fn make_divergent_vector_field(width: f32, height: f32) -> Vec<f32> {
 
 pub fn make_constant_vector_field(width: f32, height: f32) -> Vec<f32> {
     let mut data = Vec::with_capacity((width * height * 4.0) as usize);
-
 
     for _ in 0..(height as i32){
         for _ in 0..(width as i32) {    
@@ -386,15 +389,15 @@ pub fn make_waves_vector_field(width: f32, height: f32) -> Vec<f32> {
 }
 
 pub fn get_vector_field_with_value(val: i32, width: i32,  height: i32) -> Vec<f32> {
-    if (val == 1) {
+    if val == 1 {
         make_constant_vector_field(width as f32, height as f32)
-    } else if (val == 2) {
+    } else if val == 2 {
         make_divergent_vector_field(width as f32, height as f32)
-    } else if (val == 3) {
+    } else if val == 3 {
         make_sine_vector_field(width as f32, height as f32)
-    } else if (val == 4) {
+    } else if val == 4 {
         make_circular_vector_field(width as f32, height as f32)
-    } else if (val == 5) {
+    } else if val == 5 {
         make_rotational_vector_field(width as f32, height as f32)
     } else {
         make_waves_vector_field(width as f32, height as f32)
@@ -402,15 +405,15 @@ pub fn get_vector_field_with_value(val: i32, width: i32,  height: i32) -> Vec<f3
 }
 
 pub fn get_color_field_with_value(val: i32, width: i32,  height: i32) -> Vec<f32> {
-    if (val == 1) {
+    if val == 1 {
         make_white_array(width, height)
-    } else if (val == 2) {
+    } else if val == 2 {
         make_black_array(width, height)
-    } else if (val == 3) {
+    } else if val == 3 {
         make_checkerboard_array(width, height)
-    } else if (val == 4) {
+    } else if val == 4 {
         make_black_white_array(width, height)
-    } else if (val == 5) {
+    } else if val == 5 {
         make_red_blue_array(width, height)
     } else {
         make_rainbow_array(width, height)

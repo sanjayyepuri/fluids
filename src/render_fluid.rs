@@ -1,5 +1,5 @@
 use web_sys::WebGlRenderingContext as GL;
-use nalgebra::Vector2;
+use nalgebra::{Vector2, Vector3};
 
 use crate::render; 
 use crate::texture;
@@ -227,4 +227,39 @@ pub fn force(gl: &GL,
     dst.unbind(&gl);
 
     (dst, velocity_field_texture)
+}
+
+pub fn color(gl: &GL,
+    force_pass:  &render::RenderPass,
+    delta_t:        f32, 
+    rho:            f32,
+    color:          &Vector3<f32>,
+    impulse_pos:    &Vector2<f32>,
+    color_field_texture:     Rc<texture::Framebuffer>,
+    dst:                        Rc<texture::Framebuffer>,
+) -> (Rc<texture::Framebuffer>, Rc<texture::Framebuffer>) 
+{
+    dst.bind(&gl);
+    force_pass.use_program(&gl);
+
+    gl.uniform1f(force_pass.uniforms["delta_t"].as_ref(), delta_t);
+    gl.uniform1f(force_pass.uniforms["rho"].as_ref(), rho);
+    gl.uniform3f(force_pass.uniforms["color"].as_ref(), color.x, color.y, color.z);
+    gl.uniform2f(force_pass.uniforms["impulse_pos"].as_ref(), impulse_pos.x, impulse_pos.y);
+
+    gl.uniform1i(force_pass.uniforms["color_field_texture"].as_ref(), 0);
+
+    gl.active_texture(GL::TEXTURE0);
+    gl.bind_texture(GL::TEXTURE_2D, Some(color_field_texture.get_texture()));
+
+    gl.bind_buffer(GL::ARRAY_BUFFER, Some(&force_pass.vertex_buffer));
+    gl.vertex_attrib_pointer_with_i32(0, 3, GL::FLOAT, false, 0, 0);
+    gl.enable_vertex_attrib_array(0); 
+    
+    gl.bind_buffer(GL::ELEMENT_ARRAY_BUFFER, Some(&force_pass.index_buffer));
+
+    gl.draw_elements_with_i32(GL::TRIANGLES, 6, GL::UNSIGNED_SHORT, 0);
+    dst.unbind(&gl);
+
+    (dst, color_field_texture)
 }
