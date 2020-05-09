@@ -13,7 +13,7 @@ pub static FORCE_FRAGMENT_SHADER:  &'static str = include_str!("./force.frag");
 pub static COLOR_FRAGMENT_SHADER:  &'static str = include_str!("./dye.frag");
 pub static SUB_FRAGMENT_SHADER:    &'static str = include_str!("./subtract.frag");
 pub static BOUND_FRAGMENT_SHADER:  &'static str = include_str!("./boundary.frag");
-
+pub static VORT_FRAGMENT_SHADER: &'static str = include_str!("./vorticity.frag");
 
 pub fn compile_shader(
     context: &WebGlRenderingContext,

@@ -64,6 +64,9 @@ pub fn start() -> Result<(), JsValue> {
     let speed_slider = document().get_element_by_id("speed_slider").unwrap();
     let speed_slider: web_sys::HtmlInputElement = speed_slider.dyn_into::<web_sys::HtmlInputElement>()?;
 
+    let vorticity_slider = document().get_element_by_id("vorticity_slider").unwrap();
+    let vorticity_slider: web_sys::HtmlInputElement = vorticity_slider.dyn_into::<web_sys::HtmlInputElement>()?;
+
     let vector_field_select = document().get_element_by_id("vector_field_select").unwrap();
     let vector_field_select: web_sys::HtmlSelectElement = vector_field_select.dyn_into::<web_sys::HtmlSelectElement>()?;
 
@@ -89,6 +92,7 @@ pub fn start() -> Result<(), JsValue> {
     let bound_frag_shader = shader::compile_shader(&gl, GL::FRAGMENT_SHADER, shader::BOUND_FRAGMENT_SHADER)?;
     let force_frag_shader = shader::compile_shader(&gl, GL::FRAGMENT_SHADER, shader::FORCE_FRAGMENT_SHADER)?;
     let color_frag_shader = shader::compile_shader(&gl, GL::FRAGMENT_SHADER, shader::COLOR_FRAGMENT_SHADER)?;
+    let vorticity_frag_shader = shader::compile_shader(&gl, GL::FRAGMENT_SHADER, shader::VORT_FRAGMENT_SHADER)?;
 
     let advect_pass = render::RenderPass::new(&gl, 
         [&standard_vert_shader, &advect_frag_shader],
@@ -135,6 +139,12 @@ pub fn start() -> Result<(), JsValue> {
     let color_pass = render::RenderPass::new(&gl,
         [&standard_vert_shader, &color_frag_shader],
         vec!["delta_t", "rho", "color", "impulse_pos", "color_field_texture"], "vertex_position",
+        &geometry::QUAD_VERTICES, &geometry::QUAD_INDICES,
+    )?;
+
+    let vorticity_pass = render::RenderPass::new(&gl, 
+        [&standard_vert_shader, &vorticity_frag_shader],
+        vec!["delta_t", "delta_x", "vorticity", "v"], "vertex_position", 
         &geometry::QUAD_VERTICES, &geometry::QUAD_INDICES,
     )?;
 
@@ -294,8 +304,19 @@ pub fn start() -> Result<(), JsValue> {
 
             let p_result = render_fluid::boundary(&gl, &boundary_pass, 
                 delta_x, 1.0, Rc::clone(&src_pressure_field), Rc::clone(&dst_pressure_field));
-            src_pressure_field = p_result.0;
-            dst_pressure_field = p_result.1;
+                src_pressure_field = p_result.0;
+                dst_pressure_field = p_result.1;
+        }
+
+        {   
+            let vorticity = vorticity_slider.value_as_number() as f32;
+            let result = render_fluid::vorticity_confinement(&gl, &vorticity_pass, 
+                delta_t, delta_x, vorticity, 
+                Rc::clone(&src_velocity_field), Rc::clone(&dst_velocity_field));
+            
+            src_velocity_field = result.0;
+            dst_velocity_field = result.1;
+            
         }
 
         {

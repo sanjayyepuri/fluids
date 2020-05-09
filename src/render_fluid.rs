@@ -263,3 +263,37 @@ pub fn color(gl: &GL,
 
     (dst, color_field_texture)
 }
+
+pub fn vorticity_confinement(gl: &GL,
+    vorticity_pass: &render::RenderPass, 
+    delta_t:    f32,
+    delta_x:    f32, 
+    vorticity:  f32, 
+    v :         Rc<texture::Framebuffer>,
+    dst:        Rc<texture::Framebuffer>,
+) -> (Rc<texture::Framebuffer>, Rc<texture::Framebuffer>) 
+{
+    dst.bind(&gl);
+    vorticity_pass.use_program(&gl);
+
+    gl.uniform1f(vorticity_pass.uniforms["delta_t"].as_ref(), delta_t);
+    gl.uniform1f(vorticity_pass.uniforms["delta_x"].as_ref(), delta_x);
+    gl.uniform1f(vorticity_pass.uniforms["vorticity"].as_ref(), vorticity);
+    gl.uniform1i(vorticity_pass.uniforms["v"].as_ref(), 0);
+
+    gl.active_texture(GL::TEXTURE0);
+    gl.bind_texture(GL::TEXTURE_2D, Some(v.get_texture()));
+    
+    gl.bind_buffer(GL::ARRAY_BUFFER, Some(&vorticity_pass.vertex_buffer));
+    gl.vertex_attrib_pointer_with_i32(0, 3, GL::FLOAT, false, 0, 0);
+    gl.enable_vertex_attrib_array(0); 
+    
+    gl.bind_buffer(GL::ELEMENT_ARRAY_BUFFER, Some(&vorticity_pass.index_buffer));
+
+    gl.draw_elements_with_i32(GL::TRIANGLES, 6, GL::UNSIGNED_SHORT, 0);
+
+
+    dst.unbind(&gl);
+
+    (dst, v)
+}
