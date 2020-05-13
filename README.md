@@ -7,45 +7,38 @@
 
 ## About
 
-[**📚 Read this template tutorial! 📚**][template-docs]
+For our final project we implemented an algorithm called Fast Fluid Dynamics (FFD) using Rust and WebGL. This is a method for creating real-time, stable fluid simulations that run entirely on the GPU based on Jos Stam’s paper, “Stable Fluids” (Stam 1999).
 
-This template is designed for compiling Rust libraries into WebAssembly and
-publishing the resulting package to NPM.
-
-Be sure to check out [other `wasm-pack` tutorials online][tutorials] for other
-templates and usages of `wasm-pack`.
-
-[tutorials]: https://rustwasm.github.io/docs/wasm-pack/tutorials/index.html
-[template-docs]: https://rustwasm.github.io/docs/wasm-pack/tutorials/npm-browser-packages/index.html
-
+Our implementation is based on the tutorial in [this](https://developer.download.nvidia.com/books/HTML/gpugems/gpugems_ch38.html) GPU Gems Chapter.
 ## 🚴 Usage
 
-### 🐑 Use `cargo generate` to Clone this Template
+### 🐑 Install dependencies
 
-[Learn more about `cargo generate` here.](https://github.com/ashleygwilliams/cargo-generate)
-
+In order to use Rust and WASM you will need the nightly version of Rust. 
+* First, install [rustup](https://rustup.rs/)
+* Then, run the following commands to install the rust nightly toolchain and make it the default:
 ```
-cargo generate --git https://github.com/rustwasm/wasm-pack-template.git --name my-project
-cd my-project
+$ rustup install nightly
+$ rustup default nightly
 ```
-
-### 🛠️ Build with `wasm-pack build`
-
+You will also need to install [Node.js](https://nodejs.org/en/). Then run the following command to install the javascript dependencies. 
 ```
-wasm-pack build
-```
-
-### 🔬 Test in Headless Browsers with `wasm-pack test`
-
-```
-wasm-pack test --headless --firefox
+$ npm install
 ```
 
-### 🎁 Publish to NPM with `wasm-pack publish`
+### 🛠️ Build 
+To build and run the project run the following command.
+```
+$ npm run serve
+```
+You can access the simulation from `localhost:3000`
 
+To build without running the webserver execute: 
 ```
-wasm-pack publish
+$ npm run build
 ```
+
+
 
 ## 🔋 Batteries Included
 
