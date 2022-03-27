@@ -18,6 +18,6 @@ jobs:
           node-version: '17'
 
       - name: Build
-        run: 
-          - npm install
-          - npm run build
+        run: | 
+          npm install
+          npm run build
