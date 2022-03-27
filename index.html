@@ -1,0 +1,95 @@
+<html>
+  <head>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <title>Fast Fluid Dynamics</title>
+    <link type="text/css" rel="stylesheet" href="style_css.css" media="screen, projection"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script defer src="index.js"></script></head>
+  <body>
+    <div class="container">
+      <div class="row"></div>
+
+      <div class="row">
+        <canvas id="canvas" height="512" width="512" />
+        </canvas>
+      </div>
+
+         <div class="row">
+          <form action="#">
+              <h4>Simulation Variables</h4>
+              <div class="col s6">
+                <h5>Color Field</h5>
+                <select id="color_field_select">
+                  <option value="" disabled selected>Choose your option</option>
+                  <option value="1">White</option>
+                  <option value="2">Black</option>
+                  <option value="3">Checkerboard</option>
+                  <option value="4">White/Black</option>
+                  <option value="5">Red/Blue</option>
+                  <option value="6">Rainbow</option>
+                </select>
+                <h5>Vector Field</h5>
+                <select id="vector_field_select">
+                  <option value="" disabled selected>Choose your option</option>
+                  <option value="1">Static</option>
+                  <option value="2">Constant</option>
+                  <option value="3">Divergent</option>
+                  <option value="4">Sine</option>
+                  <option value="5">Circle</option>
+                  <option value="6">Rotational</option>
+                  <option value="7">Waves</option>
+                </select>
+                <h5>Splat Color<span>
+                  <label>
+                      <input id="random_color" type="checkbox" class="filled-in" sdf/>
+                      <span>Random</span>
+                  </label>
+                </span></h5>
+                <input id="splat_color" type="color">
+              </div>
+              <div class="col s6">
+                <div class="row"></div>
+                <div class="row"></div>
+                
+                <h6>Jacobi Iterations</h6>
+                <div class = "range-slider">
+                  <input id="jacobi_slider" type="range" min="10" max="50" value="20"/>
+                  <span id="jacobi_value" class="range-slider_value">20</span>
+                </div>
+                <h6>Viscosity</h6>
+                <div class = "range-slider">
+                  <input id="viscocity_slider" type="range" min="-9" max="9" value="-6"/>
+                  <span id="viscocity_value" class="range-slider_value">1e-6</span>
+                </div>
+                <h6>Splat Force</h6>
+                <div class = "range-slider">
+                  <input id="speed_slider" type="range" min="500" max="1500" value="500"/>
+                  <span id="speed_value" class="range-slider_value">500</span>
+                </div>
+                <h6>Vorticity</h6>
+                <div class = "range-slider">
+                  <input id="vorticity_slider" type="range" min="0" max="50" value="10"/>
+                  <span id="vorticity_value" class="range-slider_value">10</span>
+                </div>
+              </div>
+          </form>
+      </div>
+    </div>
+    <script>
+      var rangeSlider = (function() {
+        var slider = $('.range-slider'),
+            range = $('[type=range]'),
+            value = $('.range-slider__value');
+          
+        slider.each(function() {
+          range.on('input', function() {
+            if ($(this).attr('id') == "viscocity_slider") $(this).next(value).html("1e" + this.value);
+            else $(this).next(value).html(this.value);
+          });
+        });
+      });
+      
+      rangeSlider();
+    </script>
+  </body>
+</html>
