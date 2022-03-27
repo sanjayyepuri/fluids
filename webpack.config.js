@@ -4,6 +4,9 @@ const webpack = require('webpack');
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 
 module.exports = {
+    experiments: {
+        asyncWebAssembly: true
+    },
     entry: './index.js',
     output: {
         path: path.resolve(__dirname, 'dist'),

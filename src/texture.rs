@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use web_sys::WebGlRenderingContext as GL;
 use wasm_bindgen::JsValue;
 use web_sys::*; 
@@ -9,6 +10,8 @@ use palette::encoding::srgb::Srgb;
 use std::f32;
 use std::f32::consts::PI;
 
+
+#[allow(dead_code)]
 pub struct Framebuffer{
     w_: i32, 
     h_: i32,
@@ -176,7 +179,7 @@ pub fn make_checkerboard_array(width: i32, height: i32) -> Vec<f32> {
 pub fn make_rainbow_array(width: i32, height: i32) -> Vec<f32> {
     let mut data = Vec::with_capacity((width * height * 4) as usize);
 
-    let mut colors = get_rainbow_array();
+    let colors = get_rainbow_array();
 
     for r in 0..width {
         for c in 0..height {

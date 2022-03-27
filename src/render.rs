@@ -14,7 +14,8 @@ pub fn clear_framebuffer(gl: &GL) {
     gl.depth_func(GL::LEQUAL);
     gl.clear(GL::COLOR_BUFFER_BIT | GL::DEPTH_BUFFER_BIT);
 }
- 
+
+#[allow(dead_code)]
 pub struct RenderPass<'a> {
     shader_progam:      WebGlProgram,
     pub uniforms:       HashMap<&'a str, Option<WebGlUniformLocation>>,
